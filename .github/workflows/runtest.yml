@@ -1,0 +1,69 @@
+name: cv2PySide6 test
+
+on: [push, pull_request]
+
+jobs:
+
+  flake8:
+
+    runs-on: ubuntu-latest
+
+    steps: 
+
+      - name: get repo
+        uses: actions/checkout@v2
+
+      - name: set up Python
+        uses: actions/setup-python@v2
+
+      - name: install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install flake8
+
+      - run: flake8
+
+  pytest:
+
+    needs: flake8
+
+    runs-on: ${{ matrix.os }}
+
+    strategy:
+      matrix:
+        os : [ubuntu-latest]
+        python: ["3.5", "3.6", "3.7", "3.8", "3.9", "3.10"]
+
+    env:
+      DISPLAY: ':99.0'
+
+    steps:
+
+      - name: get repo
+        uses: actions/checkout@v2
+
+      - name: set up Python
+        uses: actions/setup-python@v2
+        with:
+          python-version: ${{ matrix.python }}
+
+      - name: install xvfb in ${{ matrix.os }}
+        run: >
+          sudo apt install libxkbcommon-x11-0 libxcb-icccm4 libxcb-image0
+          libxcb-keysyms1 libxcb-randr0 libxcb-render-util0 libxcb-xinerama0
+          libxcb-xfixes0
+
+      - name: install libopengl in ${{ matrix.os }}
+        run: sudo apt install freeglut3 freeglut3-dev
+
+      - name: install gstreamer in ${{ matrix.os }}
+        run: >
+          sudo apt install libgstreamer1.0-dev libgstreamer-plugins-base1.0-dev
+          gstreamer1.0-plugins-base gstreamer1.0-plugins-good
+          gstreamer1.0-plugins-bad gstreamer1.0-plugins-ugly gstreamer1.0-libav
+
+      - name: install package
+        run: |
+          pip install .[test-ci]
+
+      - run: pytest
