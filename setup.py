@@ -29,7 +29,7 @@ def get_extras_require():
 setup(
     name="cv2PySide6",
     version=get_version(),
-    python_requires='>=3.9',
+    python_requires='>=3.7',
     description="Package for video display by OpenCV-Python and PySide6",
     author="Jisoo Song",
     author_email="jeesoo9595@snu.ac.kr",
