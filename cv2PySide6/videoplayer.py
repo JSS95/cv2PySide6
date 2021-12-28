@@ -18,22 +18,27 @@ __all__ = [
 
 class QVideoFrame2Array(QObject):
     """
-    Pipeline which convert ``QVideoFrame`` to :class:`numpy.ndarray`,
-    process, then emit.
+    Class to convert ``QVideoFrame`` to :class:`numpy.ndarray`, perform
+    image processing, then emit.
+
+    This class acquires ``QVideoFrame`` from :meth:`frameSource` via
+    :meth:`setVideoFrame` slot. Then it converts it to
+    :class:`numpy.ndarray`, process with :meth:`processArray`, and emit
+    via :attr:`arrayChanged` signal. 
 
     """
     arrayChanged = Signal(np.ndarray)
 
     def __init__(self, parent=None):
         super().__init__(parent)
-        self._video_sink = QVideoSink()
+        self._frame_source = QVideoSink()
         self._array = np.array([], dtype=np.uint8)
 
-        self._video_sink.videoFrameChanged.connect(self.setVideoFrame)
+        self._frame_source.videoFrameChanged.connect(self.setVideoFrame)
 
-    def videoSink(self) -> QVideoSink:
-        """Video sink which provides ``QVideoFrame``."""
-        return self._video_sink
+    def frameSource(self) -> QVideoSink:
+        """Upstream source which provides ``QVideoFrame``."""
+        return self._frame_source
 
     def array(self) -> np.ndarray:
         """
@@ -93,7 +98,9 @@ class NDArrayVideoWidget(NDArrayLabel):
         self.setArraySource(QVideoFrame2Array())
 
     def arraySource(self) -> QVideoFrame2Array:
-        """Source which provides frame in :class:`numpy.ndarray`."""
+        """
+        Upstream source which provides frame in :class:`numpy.ndarray`.
+        """
         return self._array_source
 
     def setArraySource(self, source: QVideoFrame2Array):
@@ -144,7 +151,9 @@ class NDArrayVideoPlayerWidget(QWidget):
         self._player.playbackStateChanged.connect(self.playbackStateChanged)
         self._player.positionChanged.connect(self.positionChanged)
         self._player.durationChanged.connect(self.durationChanged)
-        self._player.setVideoSink(self._video_widget.arraySource().videoSink())
+        self._player.setVideoSink(
+            self._video_widget.arraySource().frameSource()
+        )
 
         self._play_pause_button.clicked.connect(self.play_pause)
 
