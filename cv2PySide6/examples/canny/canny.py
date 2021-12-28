@@ -6,6 +6,7 @@ import enum
 from numpy.typing import NDArray
 from PySide6.QtCore import Slot
 from PySide6.QtWidgets import QPushButton
+from PySide6.QtMultimedia import QMediaPlayer
 from cv2PySide6 import QVideoFrame2Array, NDArrayVideoPlayerWidget
 
 
@@ -48,6 +49,9 @@ class CannyPipeline(QVideoFrame2Array):
             raise TypeError("Wrong canny mode : %s" % self.cannyMode())
         return ret
 
+    def resetArray(self):
+        self.arrayChanged.emit(self.processArray(self.array()))
+
 
 class CannyVideoPlayerWidget(NDArrayVideoPlayerWidget):
 
@@ -68,6 +72,8 @@ class CannyVideoPlayerWidget(NDArrayVideoPlayerWidget):
 
     def toggleCanny(self, state: bool):
         self._array_source.toggleCanny(state)
+        if self._player.playbackState() != QMediaPlayer.PlayingState:
+            self._array_source.resetArray()
 
 
 if __name__ == "__main__":
