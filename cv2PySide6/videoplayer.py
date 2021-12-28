@@ -58,10 +58,23 @@ class QVideoFrame2Array(QObject):
 
     def setArray(self, array: np.ndarray):
         """
-        Update :meth:`array`, and emit to :attr:`arrayChanged`.
+        Process *array*, update :meth:`array` and emit to
+        :attr:`arrayChanged`.
+
+        See Also
+        ========
+
+        processArray
+
         """
         self._array = array
         self.arrayChanged.emit(array)
+
+    def processArray(self, array: np.ndarray) -> np.ndarray:
+        """
+        Perform image processing on *array* and return.
+        """
+        return array
 
 
 class NDArrayVideoWidget(NDArrayLabel):
@@ -77,6 +90,9 @@ class NDArrayVideoWidget(NDArrayLabel):
     def arraySource(self) -> QVideoFrame2Array:
         """Source which provides frame in :class:`numpy.ndarray`."""
         return self._array_source
+
+    def setArraySource(self, source: QVideoFrame2Array):
+        self._array_source = source
 
 
 
