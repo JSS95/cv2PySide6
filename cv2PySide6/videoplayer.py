@@ -18,8 +18,8 @@ __all__ = [
 
 class QVideoFrame2Array(QObject):
     """
-    Pipeline which converts ``QVideoFrame`` to :class:`numpy.ndarray`
-    then emits.
+    Pipeline which convert ``QVideoFrame`` to :class:`numpy.ndarray`,
+    process, then emit.
 
     """
     arrayChanged = Signal(np.ndarray)
@@ -36,9 +36,12 @@ class QVideoFrame2Array(QObject):
         return self._video_sink
 
     def array(self) -> np.ndarray:
-        """Current video frame in :class:`numpy.ndarray`."""
+        """
+        Current unprocessed video frame in :class:`numpy.ndarray`.
+        """
         return self._array
 
+    @Slot(QVideoFrame)
     def setVideoFrame(self, frame: QVideoFrame):
         """
         Convert ``QVideoFrame`` to ``QImage``, then to
@@ -58,7 +61,7 @@ class QVideoFrame2Array(QObject):
 
     def setArray(self, array: np.ndarray):
         """
-        Process *array*, update :meth:`array` and emit to
+        Update :meth:`array`, and emit processed array to
         :attr:`arrayChanged`.
 
         See Also
@@ -67,9 +70,8 @@ class QVideoFrame2Array(QObject):
         processArray
 
         """
-        array = self.processArray(array)
         self._array = array
-        self.arrayChanged.emit(array)
+        self.arrayChanged.emit(self.processArray(array))
 
     def processArray(self, array: np.ndarray) -> np.ndarray:
         """
