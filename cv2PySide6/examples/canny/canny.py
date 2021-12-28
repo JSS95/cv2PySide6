@@ -60,7 +60,7 @@ class CannyVideoPlayerWidget(NDArrayVideoPlayerWidget):
         self._video_widget.setArraySource(self._array_source)
         super().initWidgets()
         self._canny_button.setCheckable(True)
-        self._canny_button.toggled.connect(self._array_source.toggleCanny)
+        self._canny_button.toggled.connect(self.toggleCanny)
 
     def initUI(self):
         super().initUI()
