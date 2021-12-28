@@ -31,6 +31,6 @@ $ pip install git+ssh://git@github.com/JSS95/cv2PySide6.git@v1.0.0
 
 # How to use
 
-1. Subclass `QVideoFrame2Array` to define image processing pipeline with custom `processArray` method.
-2. Set the pipeline as array source of `NDArrayVideoWidget`.
-3. Set the video sink of `QMediaPlayer` as upstream video sink of the pipeline.
+1. Subclass `QVideoFrame2Array` to define image processor with custom `processArray` method.
+2. Set the image processor as array source of `NDArrayVideoWidget`.
+3. Set the video sink of `QMediaPlayer` as upstream video sink of the processor.

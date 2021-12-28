@@ -10,7 +10,7 @@ from PySide6.QtMultimedia import QMediaPlayer
 from cv2PySide6 import QVideoFrame2Array, NDArrayVideoPlayerWidget
 
 
-class CannyPipeline(QVideoFrame2Array):
+class CannyEdgeDetector(QVideoFrame2Array):
 
     class CannyMode(enum.Enum):
         Off = 0
@@ -60,7 +60,7 @@ class CannyVideoPlayerWidget(NDArrayVideoPlayerWidget):
         self._canny_button = QPushButton("Canny")
 
     def initWidgets(self):
-        self._array_source = CannyPipeline()
+        self._array_source = CannyEdgeDetector()
         self._video_widget.setArraySource(self._array_source)
         super().initWidgets()
         self._canny_button.setCheckable(True)
