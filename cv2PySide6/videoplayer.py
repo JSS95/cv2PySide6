@@ -89,9 +89,9 @@ class NDArrayVideoPlayerWidget(QWidget):
 
     >>> from PySide6.QtWidgets import QApplication
     >>> import sys
-    >>> from cv2PySide6 import (get_samples_path,
+    >>> from cv2PySide6 import (get_data_path,
     ...     NDArrayVideoPlayerWidget)
-    >>> vidpath = get_samples_path("hello.mp4")
+    >>> vidpath = get_data_path("hello.mp4")
     >>> def runGUI():
     ...     app = QApplication(sys.argv)
     ...     player = NDArrayVideoPlayerWidget()
