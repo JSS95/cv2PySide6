@@ -197,11 +197,13 @@ def array2qimage(array: NDArray) -> QImage:
 def qimage2array(qimg: QImage) -> NDArray:
     """
     Convert the ``QImage`` to :class:`numpy.ndarray`.
+
+    The resulting array does not share the memory with *qimg*.
     """
     w = qimg.width()
     h = qimg.height()
     ch = int(qimg.sizeInBytes()/w/h)
 
     ptr = qimg.constBits()
-    array = np.frombuffer(ptr, dtype=np.uint8).reshape((h, w, ch))
+    array = np.frombuffer(ptr, dtype=np.uint8).reshape((h, w, ch)).copy()
     return array

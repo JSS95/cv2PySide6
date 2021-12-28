@@ -18,8 +18,8 @@ __all__ = [
 
 class QVideoFrame2Array(QObject):
     """
-    Pipeline which converts ``QVideoFrame`` to :class:`numpy.ndarray`
-    then emits.
+    Pipeline which convert ``QVideoFrame`` to :class:`numpy.ndarray`,
+    process, then emit.
 
     """
     arrayChanged = Signal(np.ndarray)
@@ -36,9 +36,12 @@ class QVideoFrame2Array(QObject):
         return self._video_sink
 
     def array(self) -> np.ndarray:
-        """Current video frame in :class:`numpy.ndarray`."""
+        """
+        Current unprocessed video frame in :class:`numpy.ndarray`.
+        """
         return self._array
 
+    @Slot(QVideoFrame)
     def setVideoFrame(self, frame: QVideoFrame):
         """
         Convert ``QVideoFrame`` to ``QImage``, then to
@@ -58,10 +61,26 @@ class QVideoFrame2Array(QObject):
 
     def setArray(self, array: np.ndarray):
         """
-        Update :meth:`array`, and emit to :attr:`arrayChanged`.
+        Update :meth:`array`, and emit processed array to
+        :attr:`arrayChanged`.
+
+        See Also
+        ========
+
+        processArray
+
         """
         self._array = array
-        self.arrayChanged.emit(array)
+        self.arrayChanged.emit(self.processArray(array))
+
+    def processArray(self, array: np.ndarray) -> np.ndarray:
+        """
+        Perform image processing on *array* and return. The result must
+        be in RGBA format.
+
+        """
+        array = cv2.cvtColor(array, cv2.COLOR_BGRA2RGBA)
+        return array
 
 
 class NDArrayVideoWidget(NDArrayLabel):
@@ -71,13 +90,15 @@ class NDArrayVideoWidget(NDArrayLabel):
     """
     def __init__(self, parent=None):
         super().__init__(parent)
-        self._array_source = QVideoFrame2Array()
-        self._array_source.arrayChanged.connect(self.setArray)
+        self.setArraySource(QVideoFrame2Array())
 
     def arraySource(self) -> QVideoFrame2Array:
         """Source which provides frame in :class:`numpy.ndarray`."""
         return self._array_source
 
+    def setArraySource(self, source: QVideoFrame2Array):
+        self._array_source = source
+        self._array_source.arrayChanged.connect(self.setArray)
 
 
 class NDArrayVideoPlayerWidget(QWidget):
@@ -89,8 +110,7 @@ class NDArrayVideoPlayerWidget(QWidget):
 
     >>> from PySide6.QtWidgets import QApplication
     >>> import sys
-    >>> from cv2PySide6 import (get_data_path,
-    ...     NDArrayVideoPlayerWidget)
+    >>> from cv2PySide6 import (get_data_path, NDArrayVideoPlayerWidget)
     >>> vidpath = get_data_path("hello.mp4")
     >>> def runGUI():
     ...     app = QApplication(sys.argv)
@@ -119,6 +139,8 @@ class NDArrayVideoPlayerWidget(QWidget):
         self._video_widget = NDArrayVideoWidget()
 
     def initWidgets(self):
+        self._video_widget.setAlignment(Qt.AlignCenter)
+
         self._player.playbackStateChanged.connect(self.playbackStateChanged)
         self._player.positionChanged.connect(self.positionChanged)
         self._player.durationChanged.connect(self.durationChanged)
@@ -131,17 +153,17 @@ class NDArrayVideoPlayerWidget(QWidget):
         self._video_slider.sliderReleased.connect(self.sliderReleased)
 
     def initUI(self):
-        control_layout = QHBoxLayout()
+        self._control_layout = QHBoxLayout()
         play_icon = self.style().standardIcon(QStyle.SP_MediaPlay)
         self._play_pause_button.setIcon(play_icon)
-        control_layout.addWidget(self._play_pause_button)
+        self._control_layout.addWidget(self._play_pause_button)
         self._video_slider.setOrientation(Qt.Horizontal)
-        control_layout.addWidget(self._video_slider)
+        self._control_layout.addWidget(self._video_slider)
 
-        main_layout = QVBoxLayout()
-        main_layout.addWidget(self._video_widget)
-        main_layout.addLayout(control_layout)
-        self.setLayout(main_layout)
+        self._main_layout = QVBoxLayout()
+        self._main_layout.addWidget(self._video_widget)
+        self._main_layout.addLayout(self._control_layout)
+        self.setLayout(self._main_layout)
 
     def pausedBySliderPress(self) -> bool:
         """If true, video is paused by pressing slider."""
@@ -213,5 +235,4 @@ class NDArrayVideoPlayerWidget(QWidget):
         ok, frame = vidcap.read()
         vidcap.release()
         if ok:
-            frame_rgba = cv2.cvtColor(frame, cv2.COLOR_BGR2RGBA)
-            self._video_widget.setArray(frame_rgba)
+            self._video_widget.arraySource().setArray(frame)
