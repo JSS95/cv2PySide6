@@ -151,17 +151,17 @@ class NDArrayVideoPlayerWidget(QWidget):
         self._video_slider.sliderReleased.connect(self.sliderReleased)
 
     def initUI(self):
-        control_layout = QHBoxLayout()
+        self._control_layout = QHBoxLayout()
         play_icon = self.style().standardIcon(QStyle.SP_MediaPlay)
         self._play_pause_button.setIcon(play_icon)
-        control_layout.addWidget(self._play_pause_button)
+        self._control_layout.addWidget(self._play_pause_button)
         self._video_slider.setOrientation(Qt.Horizontal)
-        control_layout.addWidget(self._video_slider)
+        self._control_layout.addWidget(self._video_slider)
 
-        main_layout = QVBoxLayout()
-        main_layout.addWidget(self._video_widget)
-        main_layout.addLayout(control_layout)
-        self.setLayout(main_layout)
+        self._main_layout = QVBoxLayout()
+        self._main_layout.addWidget(self._video_widget)
+        self._main_layout.addLayout(self._control_layout)
+        self.setLayout(self._main_layout)
 
     def pausedBySliderPress(self) -> bool:
         """If true, video is paused by pressing slider."""
