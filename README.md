@@ -21,3 +21,16 @@ This directly installs `cv2PySide6` from the repository using `pip`.
 ```
 $ pip install git+ssh://git@github.com/JSS95/cv2PySide6.git
 ```
+
+You can specify the version after an `@` at the end of the url.
+The following command installs `cv2PySide6` with version `v1.0.0`.
+
+```
+$ pip install git+ssh://git@github.com/JSS95/cv2PySide6.git@v1.0.0
+```
+
+# How to use
+
+1. Subclass `QVideoFrame2Array` to define image processing pipeline with custom `processArray` method.
+2. Set the pipeline as array source of `NDArrayVideoWidget`.
+3. Set the video sink of `QMediaPlayer` as upstream video sink of the pipeline.
