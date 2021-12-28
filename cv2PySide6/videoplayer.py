@@ -88,8 +88,7 @@ class NDArrayVideoWidget(NDArrayLabel):
     """
     def __init__(self, parent=None):
         super().__init__(parent)
-        self._array_source = QVideoFrame2Array()
-        self._array_source.arrayChanged.connect(self.setArray)
+        self.setArraySource(QVideoFrame2Array())
 
     def arraySource(self) -> QVideoFrame2Array:
         """Source which provides frame in :class:`numpy.ndarray`."""
@@ -97,7 +96,7 @@ class NDArrayVideoWidget(NDArrayLabel):
 
     def setArraySource(self, source: QVideoFrame2Array):
         self._array_source = source
-
+        self._array_source.arrayChanged.connect(self.setArray)
 
 
 class NDArrayVideoPlayerWidget(QWidget):
@@ -138,6 +137,8 @@ class NDArrayVideoPlayerWidget(QWidget):
         self._video_widget = NDArrayVideoWidget()
 
     def initWidgets(self):
+        self._video_widget.setAlignment(Qt.AlignCenter)
+
         self._player.playbackStateChanged.connect(self.playbackStateChanged)
         self._player.positionChanged.connect(self.positionChanged)
         self._player.durationChanged.connect(self.durationChanged)
