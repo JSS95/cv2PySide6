@@ -5,7 +5,7 @@ from .utilwidgets import ClickableSlider
 from .labels import ScalableQLabel, NDArrayLabel, array2qimage, qimage2array
 from .videoplayer import (QVideoFrame2Array, NDArrayVideoWidget,
     NDArrayVideoPlayerWidget)
-from .util import get_samples_path
+from .util import get_data_path
 
 
 __all__ = [
@@ -20,5 +20,5 @@ __all__ = [
     "NDArrayVideoWidget",
     "NDArrayVideoPlayerWidget",
 
-    "get_samples_path",
+    "get_data_path",
 ]
