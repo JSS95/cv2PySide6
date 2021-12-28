@@ -31,14 +31,14 @@ class QVideoFrame2Array(QObject):
 
     def __init__(self, parent=None):
         super().__init__(parent)
-        self._upstream = QVideoSink()
+        self._frame_source = QVideoSink()
         self._array = np.array([], dtype=np.uint8)
 
-        self._upstream.videoFrameChanged.connect(self.setVideoFrame)
+        self._frame_source.videoFrameChanged.connect(self.setVideoFrame)
 
     def frameSource(self) -> QVideoSink:
         """Upstream source which provides ``QVideoFrame``."""
-        return self._upstream
+        return self._frame_source
 
     def array(self) -> np.ndarray:
         """
