@@ -109,8 +109,7 @@ class NDArrayVideoPlayerWidget(QWidget):
 
     >>> from PySide6.QtWidgets import QApplication
     >>> import sys
-    >>> from cv2PySide6 import (get_data_path,
-    ...     NDArrayVideoPlayerWidget)
+    >>> from cv2PySide6 import (get_data_path, NDArrayVideoPlayerWidget)
     >>> vidpath = get_data_path("hello.mp4")
     >>> def runGUI():
     ...     app = QApplication(sys.argv)
@@ -233,5 +232,4 @@ class NDArrayVideoPlayerWidget(QWidget):
         ok, frame = vidcap.read()
         vidcap.release()
         if ok:
-            frame_rgba = cv2.cvtColor(frame, cv2.COLOR_BGR2RGBA)
-            self._video_widget.setArray(frame_rgba)
+            self._video_widget.arraySource().setArray(frame)
