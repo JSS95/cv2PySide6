@@ -1,11 +1,11 @@
 import cv2
 from PySide6.QtGui import QPixmap, Qt
 from PySide6.QtMultimedia import QMediaPlayer
-from cv2PySide6 import (get_samples_path, NDArrayVideoPlayerWidget,
+from cv2PySide6 import (get_data_path, NDArrayVideoPlayerWidget,
     ScalableQLabel, array2qimage)
 
 
-VID_PATH = get_samples_path("hello.mp4")
+VID_PATH = get_data_path("hello.mp4")
 
 
 def test_NDArrayVideoPlayerWidget(qtbot):

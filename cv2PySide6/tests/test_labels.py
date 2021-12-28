@@ -3,9 +3,9 @@ import numpy as np
 from PySide6.QtCore import QSize
 from PySide6.QtGui import QPixmap
 from cv2PySide6 import (array2qimage, qimage2array,
-    ScalableQLabel, NDArrayLabel, get_samples_path)
+    ScalableQLabel, NDArrayLabel, get_data_path)
 
-IMG_PATH = get_samples_path("hello.jpg")
+IMG_PATH = get_data_path("hello.jpg")
 
 
 def test_array2qimage():
