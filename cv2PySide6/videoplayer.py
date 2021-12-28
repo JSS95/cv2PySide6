@@ -67,13 +67,17 @@ class QVideoFrame2Array(QObject):
         processArray
 
         """
+        array = self.processArray(array)
         self._array = array
         self.arrayChanged.emit(array)
 
     def processArray(self, array: np.ndarray) -> np.ndarray:
         """
-        Perform image processing on *array* and return.
+        Perform image processing on *array* and return. The result must
+        be in RGBA format.
+
         """
+        array = cv2.cvtColor(array, cv2.COLOR_BGRA2RGBA)
         return array
 
 
