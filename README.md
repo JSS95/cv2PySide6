@@ -11,18 +11,10 @@ With cv2PySide6, you can build pipeline which reads video with `PySide6`, conver
 Before you install, be careful for other Qt-dependent packages installed in your environment.
 For example, non-headless `OpenCV-Python` module modifies the Qt dependency thus making PySide6 unavailable.
 
-For quick install, run the following command.
-This directly installs `cv2PySide6` from the repository using `pip`.
+`cv2PySide6` can be installed using `pip`.
 
 ```
-$ pip install git+https://github.com/JSS95/cv2PySide6.git
-```
-
-You can specify the version after an `@` at the end of the url.
-The following command installs `cv2PySide6` with version `v1.0.0`.
-
-```
-$ pip install git+https://github.com/JSS95/cv2PySide6.git@v1.0.0
+$ pip install cv2PySide6
 ```
 
 # How to use
