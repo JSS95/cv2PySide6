@@ -26,7 +26,7 @@ $ pip install cv2PySide6
 In `PySide6`, video frames are acquired as `QVideoFrame` and passed from `QMediaPlayer` to `QVideoSink`, then to `QVideoWidget`.
 
 <div align="center">
-  <img src="imgs/pyside6.png"/><br>
+  <img src="https://github.com/JSS95/cv2PySide6/raw/master/imgs/pyside6.png"/><br>
     Video display pipeline in PySide6
 </div>
 
@@ -35,8 +35,8 @@ This converts the `QVideoFrame` to `numpy.ndarray`, process it, then pass to `ND
 You can subclass `QVideoFrame2Array` and override `processArray` with your own image processing.
 
 <div align="center">
-  <img src="imgs/cv2pyside6.png"/><br>
+  <img src="https://github.com/JSS95/cv2PySide6/raw/master/imgs/cv2pyside6.png"/><br>
     Video display pipeline in cv2PySide6
 </div>
 
-Use cases are provided in [examples](cv2PySide6/examples) directory.
+Use cases are provided in [examples](https://github.com/JSS95/cv2PySide6/tree/master/cv2PySide6/examples) directory.
