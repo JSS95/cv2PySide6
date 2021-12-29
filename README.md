@@ -39,4 +39,6 @@ You can subclass `QVideoFrame2Array` and override `processArray` with your own i
     Video display pipeline in cv2PySide6
 </div>
 
+## Examples
+
 Use cases are provided in [examples](https://github.com/JSS95/cv2PySide6/tree/master/cv2PySide6/examples) directory.
