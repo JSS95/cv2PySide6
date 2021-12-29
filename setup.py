@@ -10,6 +10,12 @@ def get_version():
     return locals()["__version__"]
 
 
+def read_readme():
+    with open('README.md', encoding='utf-8') as f:
+        content = f.read()
+    return content
+
+
 def read_requirements(path):
     with open(path, "r") as f:
         ret = f.read().splitlines()
@@ -30,10 +36,28 @@ setup(
     name="cv2PySide6",
     version=get_version(),
     python_requires='>=3.7',
-    description="Package for video display by OpenCV-Python and PySide6",
+    description="Package for video display with OpenCV-Python and PySide6",
+    long_description=read_readme(),
+    long_description_content_type='text/markdown',
+    keywords="GUI",
+    classifiers=[
+        "License :: OSI Approved :: GNU Library or Lesser General Public License (LGPL)",
+        "Operating System :: Linux",
+        "Operating System :: Microsoft :: Windows",
+        "Programming Language :: Python :: 3",
+        "Programming Language :: Python :: 3 :: Only",
+        "Programming Language :: Python :: 3.7",
+        "Programming Language :: Python :: 3.8",
+        "Programming Language :: Python :: 3.9",
+        "Programming Language :: Python :: 3.10",
+        "Topic :: Multimedia :: Graphics"
+    ],
     author="Jisoo Song",
     author_email="jeesoo9595@snu.ac.kr",
+    maintainer="Jisoo Song",
+    maintainer_email="jeesoo9595@snu.ac.kr",
     url="https://github.com/JSS95/cv2PySide6",
+    license="LGPL",
     packages=find_packages(),
     package_data={'cv2PySide6': ['data/*', 'examples/**/*']},
     install_requires=read_requirements("requirements/install.txt"),
