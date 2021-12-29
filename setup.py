@@ -42,8 +42,10 @@ setup(
     keywords="GUI",
     classifiers=[
         "License :: OSI Approved :: GNU Library or Lesser General Public License (LGPL)",
-        "Operating System :: Linux",
+        "Operating System :: MacOS",
         "Operating System :: Microsoft :: Windows",
+        "Operating System :: POSIX",
+        "Operating System :: Unix",
         "Programming Language :: Python :: 3",
         "Programming Language :: Python :: 3 :: Only",
         "Programming Language :: Python :: 3.7",
