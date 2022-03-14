@@ -2,33 +2,38 @@ import cv2
 import numpy as np
 from PySide6.QtCore import QSize
 from PySide6.QtGui import QPixmap
-from cv2PySide6 import (array2qimage, qimage2array,
-    ScalableQLabel, NDArrayLabel, get_data_path)
+from qimage2ndarray import array2qimage
+
+from cv2PySide6 import (qimage2array, ScalableQLabel, NDArrayLabel,
+    get_data_path)
 
 IMG_PATH = get_data_path("hello.jpg")
 
 
-def test_array2qimage():
-    img_array = cv2.cvtColor(cv2.imread(IMG_PATH), cv2.COLOR_BGR2RGBA)
-
-    h, w = img_array.shape[:2]
-
-    qimage = array2qimage(img_array)
-    assert qimage.width() == w
-    assert qimage.height() == h
-    assert qimage.bytesPerLine() == w * 4
-    assert qimage.sizeInBytes() == img_array.size
-
-
 def test_qimage2array():
     bgr_img = cv2.imread(IMG_PATH)
-    img = cv2.cvtColor(bgr_img, cv2.COLOR_BGR2RGBA)
+    rgb_img = cv2.cvtColor(bgr_img, cv2.COLOR_BGR2RGB)
+    bgra_img = cv2.cvtColor(bgr_img, cv2.COLOR_BGR2BGRA)
+    rgba_img = cv2.cvtColor(bgr_img, cv2.COLOR_BGR2RGBA)
 
-    qimage = array2qimage(img)
-    img2 = qimage2array(qimage)
+    # conversion from bgr -> converted to rgba
+    img_from_bgr = qimage2array(array2qimage(bgr_img))
+    assert img_from_bgr.shape == rgba_img.shape
+    assert np.all(img_from_bgr == rgba_img)
 
-    assert img.shape == img2.shape
-    assert np.all(img == img2)
+    # conversion from bgra -> converted to rgba
+    img_from_bgra = qimage2array(array2qimage(bgra_img))
+    assert img_from_bgra.shape == rgba_img.shape
+    assert np.all(img_from_bgra == rgba_img)
+
+    # conversion from rgb -> converted to bgra
+    img_from_rgb = qimage2array(array2qimage(rgb_img))
+    assert img_from_rgb.shape == bgra_img.shape
+    assert np.all(img_from_rgb == bgra_img)
+
+    img_from_rgba = qimage2array(array2qimage(rgba_img))
+    assert img_from_rgba.shape == bgra_img.shape
+    assert np.all(img_from_rgba == bgra_img)
 
 
 def test_ScalableQLabel(qtbot):

@@ -2,7 +2,7 @@ from .version import __version__ # noqa
 
 
 from .utilwidgets import ClickableSlider
-from .labels import ScalableQLabel, NDArrayLabel, array2qimage, qimage2array
+from .labels import ScalableQLabel, NDArrayLabel, qimage2array
 from .videoplayer import (QVideoFrame2Array, NDArrayVideoWidget,
     NDArrayVideoPlayerWidget)
 from .util import get_data_path
@@ -13,7 +13,6 @@ __all__ = [
 
     "ScalableQLabel",
     "NDArrayLabel",
-    "array2qimage",
     "qimage2array",
 
     "QVideoFrame2Array",

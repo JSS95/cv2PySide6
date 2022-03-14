@@ -5,11 +5,11 @@ from PySide6.QtCore import Qt, Slot
 from PySide6.QtGui import QPixmap, QImage
 from PySide6.QtWidgets import QLabel, QSizePolicy
 
+from qimage2ndarray import array2qimage
 
 __all__ = [
     "ScalableQLabel",
     "NDArrayLabel",
-    "array2qimage",
     "qimage2array",
 ]
 
@@ -168,31 +168,10 @@ class NDArrayLabel(ScalableQLabel):
         """
         Convert the RGBA array to ``QPixmap`` and display.
 
-        See Also
-        ========
-
-        array2qimage
-            Convert the RGBA array to ``QPixmap``
-
         """
         pixmap = QPixmap.fromImage(array2qimage(array))
         self.setPixmap(pixmap)
 
-
-
-def array2qimage(array: NDArray) -> QImage:
-    """
-    Convert the :class:`numpy.ndarray` in RGBA format to ``QImage`` in
-    RGBA88888 format.
-    """
-    h, w, ch = array.shape
-    bytes_per_line = ch * w
-    qimg = QImage(array.data,
-                  w,
-                  h,
-                  bytes_per_line,
-                  QImage.Format_RGBA8888)
-    return qimg
 
 def qimage2array(qimg: QImage) -> NDArray:
     """
