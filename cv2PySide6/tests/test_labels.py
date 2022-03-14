@@ -1,8 +1,7 @@
 import cv2
-import numpy as np
 from PySide6.QtCore import QSize
-from PySide6.QtGui import QImage, QPixmap
-from qimage2ndarray import array2qimage, rgb_view
+from PySide6.QtGui import QPixmap
+from qimage2ndarray import array2qimage
 
 from cv2PySide6 import ScalableQLabel, NDArrayLabel, get_data_path
 
