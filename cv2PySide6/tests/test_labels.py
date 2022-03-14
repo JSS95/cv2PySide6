@@ -1,7 +1,7 @@
 import cv2
 import numpy as np
 from PySide6.QtCore import QSize
-from PySide6.QtGui import QPixmap
+from PySide6.QtGui import QImage, QPixmap
 from qimage2ndarray import array2qimage, rgb_view
 
 from cv2PySide6 import ScalableQLabel, NDArrayLabel, get_data_path
@@ -84,19 +84,31 @@ def test_NDArrayLabel(qtbot):
     # pixmap size is fixed
     label.setArray(img)
     assert label.pixmap().size() == QSize(w, h)
-    assert np.all(rgb_view(label.pixmap().toImage()) == img)
+    assert np.all(
+        rgb_view(
+            label.pixmap().toImage().convertToFormat(QImage.Format_RGB32)
+        ) == img
+    )
     # test downscaling : size fixed to original size
     new_w, new_h = (int(w/2), int(h/2))
     label.resize(new_w, new_h)
     label.setArray(img)
     assert label.pixmap().size() == QSize(w, h)
-    assert np.all(rgb_view(label.pixmap().toImage()) == img)
+    assert np.all(
+        rgb_view(
+            label.pixmap().toImage().convertToFormat(QImage.Format_RGB32)
+        ) == img
+    )
     # test upscaling : size fixed to original size
     new_w, new_h = (2*w, 2*h)
     label.resize(new_w, new_h)
     label.setArray(img)
     assert label.pixmap().size() == QSize(w, h)
-    assert np.all(rgb_view(label.pixmap().toImage()) == img)
+    assert np.all(
+        rgb_view(
+            label.pixmap().toImage().convertToFormat(QImage.Format_RGB32)
+        ) == img
+    )
 
     label.setPixmapScaleMode(label.PM_DownScaleOnly)
     # test downscaling
@@ -109,7 +121,11 @@ def test_NDArrayLabel(qtbot):
     label.resize(new_w, new_h)
     label.setArray(img)
     assert label.pixmap().size() == QSize(w, h)
-    assert np.all(rgb_view(label.pixmap().toImage()) == img)
+    assert np.all(
+        rgb_view(
+            label.pixmap().toImage().convertToFormat(QImage.Format_RGB32)
+        ) == img
+    )
 
     label.setPixmapScaleMode(label.PM_UpScaleOnly)
     # test downscaling : minimum size == original size
@@ -117,7 +133,11 @@ def test_NDArrayLabel(qtbot):
     label.resize(new_w, new_h)
     label.setArray(img)
     assert label.pixmap().size() == QSize(w, h)
-    assert np.all(rgb_view(label.pixmap().toImage()) == img)
+    assert np.all(
+        rgb_view(
+            label.pixmap().toImage().convertToFormat(QImage.Format_RGB32)
+        ) == img
+    )
     # test upscaling : maximum size == original size
     new_w, new_h = (2*w, 2*h)
     label.resize(new_w, new_h)
