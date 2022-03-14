@@ -1,11 +1,11 @@
-import cv2
+import cv2 # type: ignore
 import numpy as np
 from PySide6.QtCore import Qt, QObject, Signal, Slot, QUrl
 from PySide6.QtGui import QCloseEvent
 from PySide6.QtWidgets import (QWidget, QPushButton, QStyle, QHBoxLayout,
     QVBoxLayout)
 from PySide6.QtMultimedia import QMediaPlayer, QVideoSink, QVideoFrame
-from qimage2ndarray import rgb_view
+from qimage2ndarray import rgb_view # type: ignore
 
 from .labels import NDArrayLabel
 from .utilwidgets import ClickableSlider

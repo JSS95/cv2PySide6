@@ -1,11 +1,10 @@
 import enum
 import numpy as np
-from numpy.typing import NDArray
 from PySide6.QtCore import Qt, Slot
 from PySide6.QtGui import QPixmap, QImage
 from PySide6.QtWidgets import QLabel, QSizePolicy
 
-from qimage2ndarray import array2qimage
+from qimage2ndarray import array2qimage # type: ignore
 
 __all__ = [
     "ScalableQLabel",
@@ -160,7 +159,7 @@ class NDArrayLabel(ScalableQLabel):
 
     """
     @Slot(np.ndarray)
-    def setArray(self, array: NDArray):
+    def setArray(self, array: np.ndarray):
         """Convert the RGB(A) array to ``QPixmap`` and display"""
         pixmap = QPixmap.fromImage(array2qimage(array))
         self.setPixmap(pixmap)
