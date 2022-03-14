@@ -38,13 +38,13 @@ class CannyEdgeDetector(QVideoFrame2Array):
         self.setCannyMode(mode)
 
     def processArray(self, array: NDArray) -> NDArray:
-        rgba = super().processArray(array)
+        array = super().processArray(array)
         if self.cannyMode() == self.CannyOn:
-            gray = cv2.cvtColor(rgba, cv2.COLOR_RGBA2GRAY)
+            gray = cv2.cvtColor(array, cv2.COLOR_RGB2GRAY)
             canny = cv2.Canny(gray, 50, 200)
-            ret = cv2.cvtColor(canny, cv2.COLOR_GRAY2RGBA)
+            ret = cv2.cvtColor(canny, cv2.COLOR_GRAY2RGB)
         elif self.cannyMode() == self.CannyOff:
-            ret = rgba
+            ret = array
         else:
             raise TypeError("Wrong canny mode : %s" % self.cannyMode())
         return ret

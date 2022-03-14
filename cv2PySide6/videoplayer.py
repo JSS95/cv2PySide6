@@ -75,12 +75,7 @@ class QVideoFrame2Array(QObject):
         self.arrayChanged.emit(self.processArray(array))
 
     def processArray(self, array: np.ndarray) -> np.ndarray:
-        """
-        Perform image processing on *array* and return. The result must
-        be in RGBA format.
-
-        """
-        array = cv2.cvtColor(array, cv2.COLOR_BGRA2RGBA)
+        """Process and return *array*. Subclass may override this."""
         return array
 
 
@@ -240,4 +235,5 @@ class NDArrayVideoPlayerWidget(QWidget):
         ok, frame = vidcap.read()
         vidcap.release()
         if ok:
-            self._video_widget.arraySource().setArray(frame)
+            frame_rgb = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
+            self._video_widget.arraySource().setArray(frame_rgb)
