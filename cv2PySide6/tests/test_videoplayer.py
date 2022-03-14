@@ -13,7 +13,6 @@ VID_PATH = get_data_path("hello.mp4")
 def test_NDArrayVideoPlayerWidget(qtbot):
     vpwidget = NDArrayVideoPlayerWidget()
     vpwidget._video_widget.setPixmapScaleMode(ScalableQLabel.PM_NoScale)
-    qtbot.addWidget(vpwidget)
 
     # open video to videoplayer
     vpwidget.open(VID_PATH)

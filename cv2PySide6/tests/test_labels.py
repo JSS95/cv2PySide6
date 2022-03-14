@@ -11,10 +11,9 @@ IMG_PATH = get_data_path("hello.jpg")
 
 def test_ScalableQLabel(qtbot):
     label = ScalableQLabel()
-    qtbot.addWidget(label)
 
-    img_array = cv2.cvtColor(cv2.imread(IMG_PATH), cv2.COLOR_BGR2RGBA)
-    pixmap = QPixmap.fromImage(array2qimage(img_array))
+    img = cv2.cvtColor(cv2.imread(IMG_PATH), cv2.COLOR_BGR2RGBA)
+    pixmap = QPixmap.fromImage(array2qimage(img))
     pixmap_image = pixmap.toImage()
     img_h, img_w = pixmap_image.height(), pixmap_image.width()
 
@@ -76,70 +75,63 @@ def test_ScalableQLabel(qtbot):
 
 
 def test_NDArrayLabel(qtbot):
-    # Note : When converting QImage -> QPixmap -> QImage, the resulting
-    # QImage may have different channel (i.e. monochrome RGB to binary).
-    # Therefore we do not use the original array for comparison.
-
     label = NDArrayLabel()
-    qtbot.addWidget(label)
 
-    img_array = cv2.cvtColor(cv2.imread(IMG_PATH), cv2.COLOR_BGR2RGBA)
-    pixmap_image = QPixmap.fromImage(array2qimage(img_array)).toImage()
-    pixmap_array = rgb_view(pixmap_image)
-    arr_h, arr_w = pixmap_array.shape[:2]
+    img = cv2.imread(IMG_PATH)
+    h, w = img.shape[:2]
 
     label.setPixmapScaleMode(label.PM_NoScale)
     # pixmap size is fixed
-    label.setArray(img_array)
-    assert label.pixmap().size() == QSize(arr_w, arr_h)
-    assert np.all(rgb_view(label.pixmap().toImage()) == pixmap_array)
+    label.setArray(img)
+    assert label.pixmap().size() == QSize(w, h)
+    assert np.all(rgb_view(label.pixmap().toImage()) == img)
     # test downscaling : size fixed to original size
-    new_w, new_h = (int(arr_w/2), int(arr_h/2))
+    new_w, new_h = (int(w/2), int(h/2))
     label.resize(new_w, new_h)
-    label.setArray(img_array)
-    assert label.pixmap().size() == QSize(arr_w, arr_h)
-    assert np.all(rgb_view(label.pixmap().toImage()) == pixmap_array)
+    label.setArray(img)
+    assert label.pixmap().size() == QSize(w, h)
+    assert np.all(rgb_view(label.pixmap().toImage()) == img)
     # test upscaling : size fixed to original size
-    new_w, new_h = (2*arr_w, 2*arr_h)
+    new_w, new_h = (2*w, 2*h)
     label.resize(new_w, new_h)
-    label.setArray(img_array)
-    assert label.pixmap().size() == QSize(arr_w, arr_h)
-    assert np.all(rgb_view(label.pixmap().toImage()) == pixmap_array)
+    label.setArray(img)
+    assert label.pixmap().size() == QSize(w, h)
+    assert np.all(rgb_view(label.pixmap().toImage()) == img)
 
     label.setPixmapScaleMode(label.PM_DownScaleOnly)
     # test downscaling
-    new_w, new_h = (int(arr_w/2), int(arr_h/2))
+    new_w, new_h = (int(w/2), int(h/2))
     label.resize(new_w, new_h)
-    label.setArray(img_array)
-    assert label.pixmap().width() < arr_w and label.pixmap().height() < arr_h
+    label.setArray(img)
+    assert label.pixmap().width() < w and label.pixmap().height() < h
     # test upscaling : maximum size == original size
-    new_w, new_h = (2*arr_w, 2*arr_h)
+    new_w, new_h = (2*w, 2*h)
     label.resize(new_w, new_h)
-    label.setArray(img_array)
-    assert label.pixmap().size() == QSize(arr_w, arr_h)
-    assert np.all(rgb_view(label.pixmap().toImage()) == pixmap_array)
+    label.setArray(img)
+    assert label.pixmap().size() == QSize(w, h)
+    assert np.all(rgb_view(label.pixmap().toImage()) == img)
 
     label.setPixmapScaleMode(label.PM_UpScaleOnly)
     # test downscaling : minimum size == original size
-    new_w, new_h = (int(arr_w/2), int(arr_h/2))
+    new_w, new_h = (int(w/2), int(h/2))
     label.resize(new_w, new_h)
-    label.setArray(img_array)
-    assert label.pixmap().size() == QSize(arr_w, arr_h)
-    assert np.all(rgb_view(label.pixmap().toImage()) == pixmap_array)
+    label.setArray(img)
+    assert label.pixmap().size() == QSize(w, h)
+    assert np.all(rgb_view(label.pixmap().toImage()) == img)
     # test upscaling : maximum size == original size
-    new_w, new_h = (2*arr_w, 2*arr_h)
+    new_w, new_h = (2*w, 2*h)
     label.resize(new_w, new_h)
-    label.setArray(img_array)
-    assert label.pixmap().width() > arr_w and label.pixmap().height() > arr_h
+    label.setArray(img)
+    assert label.pixmap().width() > w and label.pixmap().height() > h
 
     label.setPixmapScaleMode(label.PM_AllScale)
     # test downscaling
-    new_w, new_h = (int(arr_w/2), int(arr_h/2))
+    new_w, new_h = (int(w/2), int(h/2))
     label.resize(new_w, new_h)
-    label.setArray(img_array)
-    assert label.pixmap().width() < arr_w and label.pixmap().height() < arr_h
+    label.setArray(img)
+    assert label.pixmap().width() < w and label.pixmap().height() < h
     # test upscaling
-    new_w, new_h = (2*arr_w, 2*arr_h)
+    new_w, new_h = (2*w, 2*h)
     label.resize(new_w, new_h)
-    label.setArray(img_array)
-    assert label.pixmap().width() > arr_w and label.pixmap().height() > arr_h
+    label.setArray(img)
+    assert label.pixmap().width() > w and label.pixmap().height() > h
