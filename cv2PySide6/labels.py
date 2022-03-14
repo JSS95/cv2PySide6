@@ -10,7 +10,6 @@ from qimage2ndarray import array2qimage
 __all__ = [
     "ScalableQLabel",
     "NDArrayLabel",
-    "qimage2array",
 ]
 
 
@@ -150,13 +149,10 @@ class NDArrayLabel(ScalableQLabel):
     >>> import sys
     >>> from cv2PySide6 import NDArrayLabel, get_data_path
     >>> img = cv2.imread(get_data_path("hello.jpg"))
-    >>> img_rgba = cv2.cvtColor(img, cv2.COLOR_BGR2RGBA)
     >>> def runGUI():
     ...     app = QApplication(sys.argv)
     ...     label = NDArrayLabel()
-    ...     geometry = label.screen().availableGeometry()
-    ...     label.resize(geometry.width() / 3, geometry.height() / 2)
-    ...     label.setArray(img_rgba)
+    ...     label.setArray(cv2.cvtColor(img, cv2.COLOR_BGR2RGB))
     ...     label.show()
     ...     app.exec()
     ...     app.quit()
@@ -165,24 +161,6 @@ class NDArrayLabel(ScalableQLabel):
     """
     @Slot(np.ndarray)
     def setArray(self, array: NDArray):
-        """
-        Convert the RGBA array to ``QPixmap`` and display.
-
-        """
+        """Convert the RGB(A) array to ``QPixmap`` and display"""
         pixmap = QPixmap.fromImage(array2qimage(array))
         self.setPixmap(pixmap)
-
-
-def qimage2array(qimg: QImage) -> NDArray:
-    """
-    Convert the ``QImage`` to :class:`numpy.ndarray`.
-
-    The resulting array does not share the memory with *qimg*.
-    """
-    w = qimg.width()
-    h = qimg.height()
-    ch = int(qimg.sizeInBytes()/w/h)
-
-    ptr = qimg.constBits()
-    array = np.frombuffer(ptr, dtype=np.uint8).reshape((h, w, ch)).copy()
-    return array
