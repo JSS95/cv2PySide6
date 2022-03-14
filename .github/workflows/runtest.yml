@@ -47,6 +47,9 @@ jobs:
         with:
           python-version: ${{ matrix.python }}
 
+      - name: update apt-get
+        run: sudo apt-get update
+
       - name: install xvfb in ${{ matrix.os }}
         run: >
           sudo apt install libxkbcommon-x11-0 libxcb-icccm4 libxcb-image0

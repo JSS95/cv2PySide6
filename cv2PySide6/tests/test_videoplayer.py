@@ -1,8 +1,10 @@
 import cv2
 from PySide6.QtGui import QPixmap, Qt
 from PySide6.QtMultimedia import QMediaPlayer
+from qimage2ndarray import array2qimage
+
 from cv2PySide6 import (get_data_path, NDArrayVideoPlayerWidget,
-    ScalableQLabel, array2qimage)
+    ScalableQLabel)
 
 
 VID_PATH = get_data_path("hello.mp4")
@@ -11,7 +13,6 @@ VID_PATH = get_data_path("hello.mp4")
 def test_NDArrayVideoPlayerWidget(qtbot):
     vpwidget = NDArrayVideoPlayerWidget()
     vpwidget._video_widget.setPixmapScaleMode(ScalableQLabel.PM_NoScale)
-    qtbot.addWidget(vpwidget)
 
     # open video to videoplayer
     vpwidget.open(VID_PATH)

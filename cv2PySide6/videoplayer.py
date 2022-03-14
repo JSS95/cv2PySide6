@@ -5,7 +5,9 @@ from PySide6.QtGui import QCloseEvent
 from PySide6.QtWidgets import (QWidget, QPushButton, QStyle, QHBoxLayout,
     QVBoxLayout)
 from PySide6.QtMultimedia import QMediaPlayer, QVideoSink, QVideoFrame
-from .labels import NDArrayLabel, qimage2array
+from qimage2ndarray import rgb_view
+
+from .labels import NDArrayLabel
 from .utilwidgets import ClickableSlider
 
 
@@ -52,16 +54,10 @@ class QVideoFrame2Array(QObject):
         Convert ``QVideoFrame`` to ``QImage``, then to
         :class:`numpy.ndarray`. Pass it to :meth:`setArray`.
 
-        See Also
-        ========
-
-        qimage2array
-            Convert ``QImage`` to :class:`numpy.ndarray`.
-
         """
         qimg = frame.toImage()
         if not qimg.isNull():
-            array = qimage2array(qimg)
+            array = rgb_view(qimg)
             self.setArray(array)
 
     def setArray(self, array: np.ndarray):
@@ -79,12 +75,7 @@ class QVideoFrame2Array(QObject):
         self.arrayChanged.emit(self.processArray(array))
 
     def processArray(self, array: np.ndarray) -> np.ndarray:
-        """
-        Perform image processing on *array* and return. The result must
-        be in RGBA format.
-
-        """
-        array = cv2.cvtColor(array, cv2.COLOR_BGRA2RGBA)
+        """Process and return *array*. Subclass may override this."""
         return array
 
 
@@ -244,4 +235,5 @@ class NDArrayVideoPlayerWidget(QWidget):
         ok, frame = vidcap.read()
         vidcap.release()
         if ok:
-            self._video_widget.arraySource().setArray(frame)
+            frame_rgb = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
+            self._video_widget.arraySource().setArray(frame_rgb)
