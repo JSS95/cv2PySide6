@@ -44,7 +44,7 @@ class ClickableSlider(QSlider):
         p = pr.x() if self.orientation() == Qt.Horizontal else pr.y()
         return QStyle.sliderValueFromPosition(self.minimum(),
                                               self.maximum(),
-                                              p - sliderMin,
+                                              int(p - sliderMin),
                                               sliderMax - sliderMin,
                                               opt.upsideDown)
 

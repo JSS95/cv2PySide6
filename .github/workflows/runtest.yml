@@ -70,3 +70,26 @@ jobs:
           pip install .[test-ci]
 
       - run: pytest
+
+  mypy:
+
+    needs: flake8
+
+    runs-on: ubuntu-latest
+
+    steps:
+
+      - name: get repo
+        uses: actions/checkout@v2
+
+      - name: set up Python
+        uses: actions/setup-python@v2
+        with:
+          python-version: ${{ matrix.python }}
+
+      - name: install dependencies
+        run: |
+          pip install -r requirements/install.txt
+          pip install -r requirements/test.txt
+
+      - run: mypy cv2PySide6

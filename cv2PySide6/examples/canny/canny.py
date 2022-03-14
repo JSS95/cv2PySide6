@@ -1,7 +1,7 @@
 """Canny edge detection example"""
 
 
-import cv2
+import cv2 # type: ignore
 import enum
 from numpy.typing import NDArray
 from PySide6.QtCore import Slot
@@ -83,8 +83,6 @@ if __name__ == "__main__":
 
     app = QApplication(sys.argv)
     player = CannyVideoPlayerWidget()
-    geometry = player.screen().availableGeometry()
-    player.resize(geometry.width() / 3, geometry.height() / 2)
     player.open(get_data_path("hello.mp4"))
     player.show()
     app.exec()

@@ -1,7 +1,7 @@
-import cv2
+import cv2 # type: ignore
 from PySide6.QtCore import QSize
 from PySide6.QtGui import QPixmap
-from qimage2ndarray import array2qimage
+from qimage2ndarray import array2qimage # type: ignore
 
 from cv2PySide6 import ScalableQLabel, NDArrayLabel, get_data_path
 
