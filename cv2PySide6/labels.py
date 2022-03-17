@@ -161,5 +161,8 @@ class NDArrayLabel(ScalableQLabel):
     @Slot(np.ndarray)
     def setArray(self, array: np.ndarray):
         """Convert the RGB(A) array to ``QPixmap`` and display"""
-        pixmap = QPixmap.fromImage(array2qimage(array))
+        if array.size > 0:
+            pixmap = QPixmap.fromImage(array2qimage(array))
+        else:
+            pixmap = QPixmap()
         self.setPixmap(pixmap)
