@@ -1,4 +1,5 @@
 import cv2 # type: ignore
+import numpy as np
 from PySide6.QtCore import QSize
 from PySide6.QtGui import QPixmap
 from qimage2ndarray import array2qimage # type: ignore
@@ -129,3 +130,12 @@ def test_NDArrayLabel(qtbot):
     label.resize(new_w, new_h)
     label.setArray(img)
     assert label.pixmap().width() > w and label.pixmap().height() > h
+
+
+def test_NDArrayLabel_emptyimage(qtbot):
+    label = NDArrayLabel()
+    assert label.pixmap().isNull()
+
+    empty_array = np.empty((0, 0, 0), dtype=np.uint8)
+    label.setArray(empty_array)
+    assert label.pixmap().isNull()
