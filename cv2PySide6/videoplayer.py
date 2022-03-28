@@ -14,7 +14,6 @@ from .utilwidgets import ClickableSlider
 __all__ = [
     'QVideoFrameToArrayConverter',
     'QVideoFrame2Array',
-    'NDArrayVideoWidget',
     'NDArrayVideoPlayerWidget',
 ]
 
@@ -95,26 +94,6 @@ class QVideoFrame2Array(QObject):
         return array
 
 
-class NDArrayVideoWidget(NDArrayLabel):
-    """
-    A scalable label which can receive and display video frame in
-    :class:`numpy.ndarray` format from :meth:`arraySource`.
-    """
-    def __init__(self, parent=None):
-        super().__init__(parent)
-        self.setArraySource(QVideoFrame2Array())
-
-    def arraySource(self) -> QVideoFrame2Array:
-        """
-        Upstream source which provides frame in :class:`numpy.ndarray`.
-        """
-        return self._array_source
-
-    def setArraySource(self, source: QVideoFrame2Array):
-        self._array_source = source
-        self._array_source.arrayChanged.connect(self.setArray)
-
-
 class NDArrayVideoPlayerWidget(QWidget):
     """
     Video player widget with play-pause button and position slider.
@@ -141,29 +120,26 @@ class NDArrayVideoPlayerWidget(QWidget):
         super().__init__(parent)
 
         self._mediaPlayer = QMediaPlayer()
+        self._arraySource = QVideoFrame2Array(self)
         self._playButton = QPushButton()
         self._videoSlider = ClickableSlider()
-        self._video_widget = NDArrayVideoWidget()
-        self.initWidgets()
-        self.initUI()
-
+        self._video_widget = NDArrayLabel()
         self._pausedBySliderPress = False
 
-    def initWidgets(self):
-        self._video_widget.setAlignment(Qt.AlignCenter)
-
+        videoSink = self.arraySource().frameSource()
+        self.mediaPlayer().setVideoSink(videoSink)
+        videoSink.videoFrameChanged.connect(self.arraySource().setVideoFrame)
+        self.arraySource().arrayChanged.connect(self._video_widget.setArray)
         self.mediaPlayer().playbackStateChanged.connect(self.onPlaybackStateChange)
         self.mediaPlayer().positionChanged.connect(self.onMediaPositionChange)
         self.mediaPlayer().durationChanged.connect(self.onMediaDurationChange)
-        self.mediaPlayer().setVideoSink(
-            self._video_widget.arraySource().frameSource()
-        )
-
         self.playButton().clicked.connect(self.onPlayButtonClicked)
-
         self.videoSlider().valueChanged.connect(self.onSliderValueChange)
         self.videoSlider().sliderPressed.connect(self.onSliderPress)
         self.videoSlider().sliderReleased.connect(self.onSliderRelease)
+        self._video_widget.setAlignment(Qt.AlignCenter)
+
+        self.initUI()
 
     def initUI(self):
         control_layout = QHBoxLayout()
@@ -180,6 +156,9 @@ class NDArrayVideoPlayerWidget(QWidget):
 
     def mediaPlayer(self) -> QMediaPlayer:
         return self._mediaPlayer
+
+    def arraySource(self) -> QVideoFrame2Array:
+        return self._arraySource
 
     def playButton(self) -> QPushButton:
         return self._playButton
@@ -254,4 +233,4 @@ class NDArrayVideoPlayerWidget(QWidget):
         vidcap.release()
         if ok:
             frame_rgb = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
-            self._video_widget.arraySource().setArray(frame_rgb)
+            self.arraySource().setArray(frame_rgb)
