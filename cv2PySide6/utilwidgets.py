@@ -9,10 +9,7 @@ __all__ = [
 
 
 class ClickableSlider(QSlider):
-    """
-    QSlider whose groove can be clicked to move to position.
-
-    """
+    """QSlider whose groove can be clicked to move to position."""
     # https://stackoverflow.com/questions/52689047
     def mousePressEvent(self, event: QMouseEvent):
         if event.button() == Qt.LeftButton:

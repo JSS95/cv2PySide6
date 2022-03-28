@@ -34,19 +34,12 @@ class QVideoFrame2Array(QObject):
     def __init__(self, parent=None):
         super().__init__(parent)
         self._frame_source = QVideoSink()
-        self._array = np.array([], dtype=np.uint8)
 
         self._frame_source.videoFrameChanged.connect(self.setVideoFrame)
 
     def frameSource(self) -> QVideoSink:
         """Upstream source which provides ``QVideoFrame``."""
         return self._frame_source
-
-    def array(self) -> np.ndarray:
-        """
-        Current unprocessed video frame in :class:`numpy.ndarray`.
-        """
-        return self._array
 
     @Slot(QVideoFrame)
     def setVideoFrame(self, frame: QVideoFrame):
@@ -71,7 +64,6 @@ class QVideoFrame2Array(QObject):
         processArray
 
         """
-        self._array = array
         self.arrayChanged.emit(self.processArray(array))
 
     def processArray(self, array: np.ndarray) -> np.ndarray:
@@ -124,17 +116,14 @@ class NDArrayVideoPlayerWidget(QWidget):
     def __init__(self, parent=None):
         super().__init__(parent)
 
-        self.constructWidgets()
-        self.initWidgets()
-        self.initUI()
-
-        self._pausedBySliderPress = False
-
-    def constructWidgets(self):
         self._player = QMediaPlayer()
         self._play_pause_button = QPushButton()
         self._video_slider = ClickableSlider()
         self._video_widget = NDArrayVideoWidget()
+        self.initWidgets()
+        self.initUI()
+
+        self._pausedBySliderPress = False
 
     def initWidgets(self):
         self._video_widget.setAlignment(Qt.AlignCenter)
@@ -164,6 +153,15 @@ class NDArrayVideoPlayerWidget(QWidget):
         self._main_layout.addWidget(self._video_widget)
         self._main_layout.addLayout(self._control_layout)
         self.setLayout(self._main_layout)
+
+    def player(self) -> QMediaPlayer:
+        return self._player
+
+    def playPauseButton(self) -> QPushButton:
+        return self._play_pause_button
+
+    def videoSlider(self) -> ClickableSlider:
+        return self._video_slider
 
     def pausedBySliderPress(self) -> bool:
         """If true, video is paused by pressing slider."""
