@@ -123,8 +123,8 @@ class ScalableQLabel(QLabel):
 
 class NDArrayLabel(ScalableQLabel):
     """
-    A scalable label which can receive and display
-    :class:`numpy.ndarray` image.
+    Scalable label which can receive and display :class:`numpy.ndarray`
+    image. Image array can be set by :meth:`setArray`.
 
     Examples
     ========
@@ -146,7 +146,7 @@ class NDArrayLabel(ScalableQLabel):
     """
     @Slot(np.ndarray)
     def setArray(self, array: np.ndarray):
-        """Convert the RGB(A) array to ``QPixmap`` and display"""
+        """Convert the RGB(A) array to pixmap and display."""
         if array.size > 0:
             pixmap = QPixmap.fromImage(array2qimage(array))
         else:
