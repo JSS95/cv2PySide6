@@ -4,7 +4,7 @@ from PySide6.QtWidgets import QSlider, QStyleOptionSlider, QStyle
 
 
 __all__ = [
-    "ClickableSlider",
+    'ClickableSlider',
 ]
 
 

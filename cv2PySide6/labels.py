@@ -7,8 +7,8 @@ from PySide6.QtWidgets import QLabel, QSizePolicy
 from qimage2ndarray import array2qimage # type: ignore
 
 __all__ = [
-    "ScalableQLabel",
-    "NDArrayLabel",
+    'ScalableQLabel',
+    'NDArrayLabel',
 ]
 
 
@@ -108,7 +108,7 @@ class ScalableQLabel(QLabel):
             elif mode == self.PM_AllScale:
                 flag = True
             else:
-                msg = "Unrecognized pixmap scale mode: %s" % mode
+                msg = 'Unrecognized pixmap scale mode: %s' % mode
                 raise TypeError(msg)
 
         if flag:

@@ -12,10 +12,35 @@ from .utilwidgets import ClickableSlider
 
 
 __all__ = [
-    "QVideoFrame2Array",
-    "NDArrayVideoWidget",
-    "NDArrayVideoPlayerWidget",
+    'QVideoFrameToArrayConverter',
+    'QVideoFrame2Array',
+    'NDArrayVideoWidget',
+    'NDArrayVideoPlayerWidget',
 ]
+
+
+class QVideoFrameToArrayConverter(QVideoSink):
+    """
+    Video sink which converts ``QVideoFrame`` to numpy array and emits
+    to :attr:`arrayChanged`.
+    """
+    arrayChanged = Signal(np.ndarray)
+
+    @staticmethod
+    def convertQVideoFrameToArray(self, frame: QVideoFrame):
+        """Converts *frame* to numpy array."""
+        qimg = frame.toImage()
+        if not qimg.isNull():
+            array = rgb_view(qimg)
+        else:
+            array = np.empty((0, 0, 0))
+        return array
+
+    @Slot(QVideoFrame)
+    def setVideoFrame(self, frame: QVideoFrame):
+        super().setVideoFrame(frame)
+        array = self.convertQVideoFrameToArray(frame)
+        self.arrayChanged.emit(array)
 
 
 class QVideoFrame2Array(QObject):
