@@ -27,7 +27,7 @@ class QVideoFrameToArrayConverter(QVideoSink):
     arrayChanged = Signal(np.ndarray)
 
     @staticmethod
-    def convertQVideoFrameToArray(self, frame: QVideoFrame):
+    def convertQVideoFrameToArray(frame: QVideoFrame):
         """Converts *frame* to numpy array."""
         qimg = frame.toImage()
         if not qimg.isNull():
