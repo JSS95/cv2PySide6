@@ -7,7 +7,7 @@ from cv2PySide6 import (get_data_path, NDArrayVideoPlayerWidget,
     ScalableQLabel)
 
 
-VID_PATH = get_data_path("hello.mp4")
+VID_PATH = get_data_path('hello.mp4')
 
 
 def test_NDArrayVideoPlayerWidget(qtbot):
@@ -18,7 +18,7 @@ def test_NDArrayVideoPlayerWidget(qtbot):
     vpwidget.open(VID_PATH)
 
     # opening the video does not play it
-    assert vpwidget._player.playbackState() == QMediaPlayer.StoppedState
+    assert vpwidget.mediaPlayer().playbackState() == QMediaPlayer.StoppedState
 
     # check preview
     cap = cv2.VideoCapture(VID_PATH)
@@ -29,11 +29,11 @@ def test_NDArrayVideoPlayerWidget(qtbot):
     assert vpwidget._video_widget.pixmap().toImage() == first_qimage
 
     # test that video is played, and stopped when ends
-    vpwidget._player.setPlaybackRate(100)
+    vpwidget.mediaPlayer().setPlaybackRate(100)
     signals = [
-        vpwidget._player.playbackStateChanged,
-        vpwidget._player.playbackStateChanged,
-        vpwidget._player.mediaStatusChanged,
+        vpwidget.mediaPlayer().playbackStateChanged,
+        vpwidget.mediaPlayer().playbackStateChanged,
+        vpwidget.mediaPlayer().mediaStatusChanged,
     ]
     callbacks = [
         lambda state: state == QMediaPlayer.PlayingState,
@@ -41,7 +41,7 @@ def test_NDArrayVideoPlayerWidget(qtbot):
         lambda status: status == QMediaPlayer.EndOfMedia
     ]
     with qtbot.waitSignals(signals, raising=True, check_params_cbs=callbacks):
-        qtbot.mouseClick(vpwidget._play_pause_button, Qt.LeftButton)
+        qtbot.mouseClick(vpwidget.playButton(), Qt.LeftButton)
     # test last frame is displayed
     assert not vpwidget._video_widget.pixmap().toImage().isNull()
 

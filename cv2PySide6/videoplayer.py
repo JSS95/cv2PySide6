@@ -71,7 +71,6 @@ class QVideoFrame2Array(QObject):
         """
         Convert ``QVideoFrame`` to ``QImage``, then to
         :class:`numpy.ndarray`. Pass it to :meth:`setArray`.
-
         """
         qimg = frame.toImage()
         if not qimg.isNull():
@@ -141,9 +140,9 @@ class NDArrayVideoPlayerWidget(QWidget):
     def __init__(self, parent=None):
         super().__init__(parent)
 
-        self._player = QMediaPlayer()
-        self._play_pause_button = QPushButton()
-        self._video_slider = ClickableSlider()
+        self._mediaPlayer = QMediaPlayer()
+        self._playButton = QPushButton()
+        self._videoSlider = ClickableSlider()
         self._video_widget = NDArrayVideoWidget()
         self.initWidgets()
         self.initUI()
@@ -153,104 +152,100 @@ class NDArrayVideoPlayerWidget(QWidget):
     def initWidgets(self):
         self._video_widget.setAlignment(Qt.AlignCenter)
 
-        self._player.playbackStateChanged.connect(self.playbackStateChanged)
-        self._player.positionChanged.connect(self.positionChanged)
-        self._player.durationChanged.connect(self.durationChanged)
-        self._player.setVideoSink(
+        self.mediaPlayer().playbackStateChanged.connect(self.onPlaybackStateChange)
+        self.mediaPlayer().positionChanged.connect(self.onMediaPositionChange)
+        self.mediaPlayer().durationChanged.connect(self.onMediaDurationChange)
+        self.mediaPlayer().setVideoSink(
             self._video_widget.arraySource().frameSource()
         )
 
-        self._play_pause_button.clicked.connect(self.play_pause)
+        self.playButton().clicked.connect(self.onPlayButtonClicked)
 
-        self._video_slider.valueChanged.connect(self.setPosition)
-        self._video_slider.sliderPressed.connect(self.sliderPressed)
-        self._video_slider.sliderReleased.connect(self.sliderReleased)
+        self.videoSlider().valueChanged.connect(self.onSliderValueChange)
+        self.videoSlider().sliderPressed.connect(self.onSliderPress)
+        self.videoSlider().sliderReleased.connect(self.onSliderRelease)
 
     def initUI(self):
-        self._control_layout = QHBoxLayout()
+        control_layout = QHBoxLayout()
         play_icon = self.style().standardIcon(QStyle.SP_MediaPlay)
-        self._play_pause_button.setIcon(play_icon)
-        self._control_layout.addWidget(self._play_pause_button)
-        self._video_slider.setOrientation(Qt.Horizontal)
-        self._control_layout.addWidget(self._video_slider)
+        self.playButton().setIcon(play_icon)
+        control_layout.addWidget(self.playButton())
+        self.videoSlider().setOrientation(Qt.Horizontal)
+        control_layout.addWidget(self.videoSlider())
 
-        self._main_layout = QVBoxLayout()
-        self._main_layout.addWidget(self._video_widget)
-        self._main_layout.addLayout(self._control_layout)
-        self.setLayout(self._main_layout)
+        layout = QVBoxLayout()
+        layout.addWidget(self._video_widget)
+        layout.addLayout(control_layout)
+        self.setLayout(layout)
 
-    def player(self) -> QMediaPlayer:
-        return self._player
+    def mediaPlayer(self) -> QMediaPlayer:
+        return self._mediaPlayer
 
-    def playPauseButton(self) -> QPushButton:
-        return self._play_pause_button
+    def playButton(self) -> QPushButton:
+        return self._playButton
 
     def videoSlider(self) -> ClickableSlider:
-        return self._video_slider
+        return self._videoSlider
 
     def pausedBySliderPress(self) -> bool:
         """If true, video is paused by pressing slider."""
         return self._pausedBySliderPress
 
-    def setPausedBySliderPress(self, flag: bool):
-        self._pausedBySliderPress = flag
-
-    def play_pause(self):
+    @Slot()
+    def onPlayButtonClicked(self):
         """Switch play-pause state of media player."""
-        if self._player.playbackState() == QMediaPlayer.PlayingState:
-            self._player.pause()
+        if self.mediaPlayer().playbackState() == QMediaPlayer.PlayingState:
+            self.mediaPlayer().pause()
         else:
-            self._player.play()
+            self.mediaPlayer().play()
 
-    def positionChanged(self, position: int):
+    @Slot(int)
+    def onMediaPositionChange(self, position: int):
         """Change the position of video position slider button."""
-        self._video_slider.setValue(position)
+        self.videoSlider().setValue(position)
 
-    def durationChanged(self, duration: int):
+    @Slot(int)
+    def onMediaDurationChange(self, duration: int):
         """Change the range of video position slider."""
-        self._video_slider.setRange(0, duration)
+        self.videoSlider().setRange(0, duration)
 
-    def setPosition(self, position: int):
+    def onSliderValueChange(self, position: int):
         """Set the position of media player."""
-        self._player.setPosition(position)
+        self.mediaPlayer().setPosition(position)
 
-    def sliderPressed(self):
-        """Pause if the video was playing"""
-        if self._player.playbackState() == QMediaPlayer.PlayingState:
-            self.setPausedBySliderPress(True)
-            self._player.pause()
+    def onSliderPress(self):
+        """Pause if the video was playing."""
+        if self.mediaPlayer().playbackState() == QMediaPlayer.PlayingState:
+            self._pausedBySliderPress = True
+            self.mediaPlayer().pause()
 
-    def sliderReleased(self):
-        """Play if the video was paused by :meth:`sliderPressed`"""
-        if self._player.playbackState() == QMediaPlayer.PausedState:
+    def onSliderRelease(self):
+        """Play if the video was paused by :meth:`onSliderPress`."""
+        if self.mediaPlayer().playbackState() == QMediaPlayer.PausedState:
             if self.pausedBySliderPress():
-                self.setPausedBySliderPress(False)
-                self._player.play()
+                self._pausedBySliderPress = False
+                self.mediaPlayer().play()
 
-    def playbackStateChanged(self, state: QMediaPlayer.PlaybackState):
+    @Slot(QMediaPlayer.PlaybackState)
+    def onPlaybackStateChange(self, state: QMediaPlayer.PlaybackState):
         """Change the icon of play-pause button."""
         if state == QMediaPlayer.PlayingState:
             pause_icon = self.style().standardIcon(QStyle.SP_MediaPause)
-            self._play_pause_button.setIcon(pause_icon)
+            self.playButton().setIcon(pause_icon)
         else:
             play_icon = self.style().standardIcon(QStyle.SP_MediaPlay)
-            self._play_pause_button.setIcon(play_icon)
-
-    @Slot()
-    def _ensure_stopped(self):
-        if self._player.playbackState() != QMediaPlayer.StoppedState:
-            self._player.stop()
+            self.playButton().setIcon(play_icon)
 
     def closeEvent(self, event: QCloseEvent):
-        self._ensure_stopped()
+        self.mediaPlayer().stop()
         event.accept()
 
     @Slot(str)
     def open(self, path: str):
         """Set the video in path as source, and display first frame."""
-        self._ensure_stopped()
+        self.mediaPlayer().stop()
         url = QUrl.fromLocalFile(path)
-        self._player.setSource(url)
+        self.mediaPlayer().setSource(url)
 
         # Show the first frame. When PySide supports video preview,
         # this can be deleted.
