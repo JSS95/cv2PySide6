@@ -1,7 +1,7 @@
 import enum
 import numpy as np
 from PySide6.QtCore import Qt, Slot
-from PySide6.QtGui import QPixmap, QImage
+from PySide6.QtGui import QPixmap
 from PySide6.QtWidgets import QLabel, QSizePolicy
 
 from qimage2ndarray import array2qimage # type: ignore
@@ -16,14 +16,18 @@ class ScalableQLabel(QLabel):
     """
     A label which can scale the pixmap before displaying.
 
-    To enable scaling while updating (e.g. displaying a playing video),
-    two things are done.
+    Pixmap can be downscaled or upscaled to fit to the label size,
+    depending on :meth:`pixmapScaleMode` value. Scaling mode can be
+    set by :meth:`setPixmapScaleMode`.
 
-    1. ``sizePolicy()`` is set to ``QSizePolicy.Expanding`` in x and y.
-       Other policies are not tested.
+    :meth:`setPixmap` scales the input pixmap and update to label.
+    :meth:`originalPixmap` returns current unscaled pixmap.
 
-    2. ``minimumSize()`` is set to ``(1, 1)``. Note that ``(0, 0)`` will
-       prevent free resizing.
+    Notes
+    =====
+
+    Do not modify the size policy and minimum size value. Changing them
+    makes the label not shrinkable.
 
     """
 
@@ -62,77 +66,59 @@ class ScalableQLabel(QLabel):
     def __init__(self, parent=None):
         super().__init__(parent)
 
+        self._original_pixmap = QPixmap()
         self._pixmapScaleMode = self.PM_DownScaleOnly
-        empty_qimg = QImage(0, 0, QImage.Format_RGB888)
-        self._original_pixmap = QPixmap.fromImage(empty_qimg)
-
         # make label shrinkable
         self.setSizePolicy(QSizePolicy.Expanding,
                            QSizePolicy.Expanding)
-        self.setMinimumSize(1, 1)
+        self.setMinimumSize(1, 1) # (0, 0) prevents resizing
+
+    def originalPixmap(self) -> QPixmap:
+        """Original pixmap before scaling."""
+        return self._original_pixmap
 
     def pixmapScaleMode(self) -> PixmapScaleMode:
         """
-        Mode to scale the ``QPixmap`` by :meth:`scalePixmap`.
-        Default is :attr:`PM_DownScaleOnly`.
-
+        Mode to scale the pixmap. Default is :attr:`PM_DownScaleOnly`.
         """
         return self._pixmapScaleMode
 
+    @Slot(PixmapScaleMode)
     def setPixmapScaleMode(self, flag: PixmapScaleMode):
+        """Set :meth:`pixmapScaleMode` to *flag* and update self."""
         self._pixmapScaleMode = flag
+        self.update()
 
-    def scalePixmap(self, pixmap: QPixmap) -> QPixmap:
-        """
-        Scale the pixmap with respect to the size of self.
+    @Slot(QPixmap)
+    def setPixmap(self, pixmap: QPixmap):
+        """Scale the pixmap and display."""
+        self._original_pixmap = pixmap
 
-        See Also
-        ========
-
-        PixmapScaleMode
-
-        """
-        scalemod = self.pixmapScaleMode()
-        if scalemod == self.PM_NoScale:
+        mode = self.pixmapScaleMode()
+        if mode == self.PM_NoScale:
             flag = False
         else:
             w, h = pixmap.width(), pixmap.height()
             new_w = self.width()
             new_h = self.height()
-            if scalemod == self.PM_DownScaleOnly:
+            if mode == self.PM_DownScaleOnly:
                 flag = new_w < w or new_h < h
-            elif scalemod == self.PM_UpScaleOnly:
+            elif mode == self.PM_UpScaleOnly:
                 flag = new_w > w or new_h > h
-            elif scalemod == self.PM_AllScale:
+            elif mode == self.PM_AllScale:
                 flag = True
             else:
-                msg = "Unrecognized pixmap scale mode: %s" % scalemod
+                msg = "Unrecognized pixmap scale mode: %s" % mode
                 raise TypeError(msg)
 
         if flag:
             pixmap = pixmap.scaled(new_w, new_h, Qt.KeepAspectRatio)
 
-        return pixmap
-
-    @Slot(QPixmap)
-    def setPixmap(self, pixmap: QPixmap):
-        """
-        Scale the pixmap and display.
-
-        See Also
-        ========
-
-        scalePixmap
-
-        """
-        self._original_pixmap = pixmap
-        scaled_pixmap = self.scalePixmap(pixmap)
-        super().setPixmap(scaled_pixmap)
+        super().setPixmap(pixmap)
 
     def paintEvent(self, event):
-        """Resets the current pixmap size when resizing the widget"""
         super().paintEvent(event)
-        self.setPixmap(self._original_pixmap)
+        self.setPixmap(self.originalPixmap())
 
 
 class NDArrayLabel(ScalableQLabel):
