@@ -1,13 +1,25 @@
 import cv2 # type: ignore
+from PySide6.QtCore import QPoint
 from PySide6.QtGui import QPixmap, Qt
 from PySide6.QtMultimedia import QMediaPlayer
 from qimage2ndarray import array2qimage # type: ignore
 
-from cv2PySide6 import (get_data_path, NDArrayVideoPlayerWidget,
-    ScalableQLabel)
-
+from cv2PySide6 import (get_data_path, ClickableSlider,
+    NDArrayVideoPlayerWidget, ScalableQLabel)
 
 VID_PATH = get_data_path('hello.mp4')
+
+
+def test_ClickableSlider(qtbot):
+    slider = ClickableSlider()
+    qtbot.addWidget(slider)
+
+    assert slider.value() == 0
+
+    pos = QPoint(10, 10)
+    qtbot.mouseClick(slider, Qt.LeftButton, pos=pos)
+
+    assert slider.value() == slider.pixelPosToRangeValue(pos)
 
 
 def test_NDArrayVideoPlayerWidget_openfile(qtbot):

@@ -1,22 +1,60 @@
 import cv2 # type: ignore
 import numpy as np
 from numpy.typing import NDArray
-from PySide6.QtCore import Qt, QObject, Signal, Slot, QUrl
-from PySide6.QtGui import QCloseEvent
-from PySide6.QtWidgets import (QWidget, QPushButton, QStyle, QHBoxLayout,
-    QVBoxLayout)
+from PySide6.QtCore import Qt, QPointF, QObject, Signal, Slot, QUrl
+from PySide6.QtGui import QMouseEvent, QCloseEvent
+from PySide6.QtWidgets import (QSlider, QStyleOptionSlider, QStyle, QWidget,
+    QPushButton, QHBoxLayout, QVBoxLayout)
 from PySide6.QtMultimedia import QMediaPlayer, QVideoSink, QVideoFrame
 from qimage2ndarray import rgb_view # type: ignore
 
 from .labels import NDArrayLabel
-from .utilwidgets import ClickableSlider
 
 
 __all__ = [
+    'ClickableSlider',
     'FrameToArrayConverter',
     'ArrayProcessor',
     'NDArrayVideoPlayerWidget',
 ]
+
+
+class ClickableSlider(QSlider):
+    """QSlider whose groove can be clicked to move to position."""
+    # https://stackoverflow.com/questions/52689047
+    def mousePressEvent(self, event: QMouseEvent):
+        if event.button() == Qt.LeftButton:
+            val = self.pixelPosToRangeValue(event.position())
+            self.setValue(val)
+        super().mousePressEvent(event)
+
+    def pixelPosToRangeValue(self, pos: QPointF) -> int:
+        opt = QStyleOptionSlider()
+        self.initStyleOption(opt)
+        gr = self.style().subControlRect(QStyle.CC_Slider,
+                                         opt,
+                                         QStyle.SC_SliderGroove,
+                                         self)
+        sr = self.style().subControlRect(QStyle.CC_Slider,
+                                         opt,
+                                         QStyle.SC_SliderHandle,
+                                         self)
+
+        if self.orientation() == Qt.Horizontal:
+            sliderLength = sr.width()
+            sliderMin = gr.x()
+            sliderMax = gr.right() - sliderLength + 1
+        else:
+            sliderLength = sr.height()
+            sliderMin = gr.y()
+            sliderMax = gr.bottom() - sliderLength + 1
+        pr = pos - sr.center() + sr.topLeft()
+        p = pr.x() if self.orientation() == Qt.Horizontal else pr.y()
+        return QStyle.sliderValueFromPosition(self.minimum(),
+                                              self.maximum(),
+                                              int(p - sliderMin),
+                                              sliderMax - sliderMin,
+                                              opt.upsideDown)
 
 
 class FrameToArrayConverter(QObject):
