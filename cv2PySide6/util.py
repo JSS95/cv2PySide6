@@ -3,7 +3,7 @@ import os
 
 
 __all__ = [
-    "get_data_path",
+    'get_data_path',
 ]
 
 
@@ -36,7 +36,7 @@ def get_data_path(*paths: str) -> str:
     """
     module_path = os.path.abspath(cv2PySide6.__file__)
     module_path = os.path.split(module_path)[0]
-    sample_dir = os.path.join(module_path, "data")
+    sample_dir = os.path.join(module_path, 'data')
     sample_dir = os.path.normpath(sample_dir)
     sample_dir = os.path.normcase(sample_dir)
 

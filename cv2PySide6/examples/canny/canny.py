@@ -1,79 +1,84 @@
-"""Canny edge detection example"""
-
+"""Video processor example with canny edge detection."""
 
 import cv2 # type: ignore
-import enum
+import numpy as np
 from numpy.typing import NDArray
 from PySide6.QtCore import Slot
 from PySide6.QtWidgets import QPushButton
 from PySide6.QtMultimedia import QMediaPlayer
-from cv2PySide6 import QVideoFrame2Array, NDArrayVideoPlayerWidget
+from cv2PySide6 import ArrayProcessor, NDArrayVideoPlayerWidget
 
 
-class CannyEdgeDetector(QVideoFrame2Array):
-
-    class CannyMode(enum.Enum):
-        Off = 0
-        On = 1
-
-    CannyOff = CannyMode.Off
-    CannyOn = CannyMode.On
+class CannyEdgeDetector(ArrayProcessor):
+    """
+    Video pipeline component to perform Canny edge detection on numpy
+    array.
+    """
 
     def __init__(self, parent=None):
         super().__init__(parent)
-        self.setCannyMode(self.CannyOff)
+        self._currentArray = np.array((0, 0, 0))
+        self._canny_mode = False
 
-    def cannyMode(self) -> CannyMode:
+    def currentArray(self) -> NDArray:
+        """Last array passed to :meth:`setArray`."""
+        return self._currentArray
+
+    def cannyMode(self) -> bool:
+        """If False, Canny edge detection is not performed."""
         return self._canny_mode
 
-    def setCannyMode(self, mode: CannyMode):
+    @Slot(bool)
+    def setCannyMode(self, mode: bool):
         self._canny_mode = mode
 
-    @Slot(bool)
-    def toggleCanny(self, state: bool):
-        if state:
-            mode = self.CannyOn
-        else:
-            mode = self.CannyOff
-        self.setCannyMode(mode)
+    @Slot(np.ndarray)
+    def setArray(self, array: NDArray):
+        self._currentArray = array.copy()
+        super().setArray(array)
 
     def processArray(self, array: NDArray) -> NDArray:
+        """Perform Canny edge detection."""
         array = super().processArray(array)
-        if self.cannyMode() == self.CannyOn:
+        if self.cannyMode():
             gray = cv2.cvtColor(array, cv2.COLOR_RGB2GRAY)
             canny = cv2.Canny(gray, 50, 200)
             ret = cv2.cvtColor(canny, cv2.COLOR_GRAY2RGB)
-        elif self.cannyMode() == self.CannyOff:
-            ret = array
         else:
-            raise TypeError("Wrong canny mode : %s" % self.cannyMode())
+            ret = array
         return ret
 
-    def resetArray(self):
-        self.arrayChanged.emit(self.processArray(self.array()))
+    def refreshCurrentArray(self):
+        """Re-process and emit :meth:`currentArray`."""
+        self.setArray(self.currentArray())
 
 
 class CannyVideoPlayerWidget(NDArrayVideoPlayerWidget):
 
-    def constructWidgets(self):
-        super().constructWidgets()
-        self._canny_button = QPushButton("Canny")
+    def __init__(self, parent=None):
+        self._cannyEdgeDetector = CannyEdgeDetector()
+        self._cannyButton = QPushButton()
+        super().__init__(parent)
 
-    def initWidgets(self):
-        self._array_source = CannyEdgeDetector()
-        self._video_widget.setArraySource(self._array_source)
-        super().initWidgets()
-        self._canny_button.setCheckable(True)
-        self._canny_button.toggled.connect(self.toggleCanny)
+        self.cannyButton().setCheckable(True)
+        self.cannyButton().toggled.connect(self.onCannyButtonToggle)
 
     def initUI(self):
         super().initUI()
-        self._main_layout.addWidget(self._canny_button)
+        self.cannyButton().setText('Toggle edge detection')
+        self.layout().addWidget(self.cannyButton())
 
-    def toggleCanny(self, state: bool):
-        self._array_source.toggleCanny(state)
-        if self._player.playbackState() != QMediaPlayer.PlayingState:
-            self._array_source.resetArray()
+    def arrayProcessor(self) -> CannyEdgeDetector:
+        return self._cannyEdgeDetector
+
+    def cannyButton(self) -> QPushButton:
+        return self._cannyButton
+
+    @Slot(bool)
+    def onCannyButtonToggle(self, state: bool):
+        self.arrayProcessor().setCannyMode(state)
+        if self.mediaPlayer().playbackState() != QMediaPlayer.PlayingState:
+            self.arrayProcessor().refreshCurrentArray()
 
 
 if __name__ == "__main__":
