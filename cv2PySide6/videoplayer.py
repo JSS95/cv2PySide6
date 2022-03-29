@@ -181,6 +181,7 @@ class NDArrayVideoPlayerWidget(QWidget):
         self.mediaPlayer().playbackStateChanged.connect(
             self.onPlaybackStateChange
         )
+        self.mediaPlayer().sourceChanged.connect(self.onMediaSourceChange)
         self.mediaPlayer().positionChanged.connect(self.onMediaPositionChange)
         self.mediaPlayer().durationChanged.connect(self.onMediaDurationChange)
         self.videoLabel().setAlignment(Qt.AlignCenter)
@@ -262,6 +263,17 @@ class NDArrayVideoPlayerWidget(QWidget):
             self.playButton().setIcon(play_icon)
             self.frameToArrayConverter().setIgnoreNullFrame(False)
 
+    @Slot(QUrl)
+    def onMediaSourceChange(self, source: QUrl):
+        """Display the first frame of the media."""
+        # Delete this when PySide6 supports video preview
+        vidcap = cv2.VideoCapture(source.toLocalFile())
+        ok, frame = vidcap.read()
+        vidcap.release()
+        if ok:
+            frame_rgb = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
+            self.arrayProcessor().setArray(frame_rgb)
+
     @Slot(int)
     def onMediaPositionChange(self, position: int):
         """Change the position of video position slider button."""
@@ -277,14 +289,6 @@ class NDArrayVideoPlayerWidget(QWidget):
         self.mediaPlayer().stop()
         url = QUrl.fromLocalFile(path)
         self.mediaPlayer().setSource(url)
-
-        # Delete this if PySide6 supports video preview
-        vidcap = cv2.VideoCapture(path)
-        ok, frame = vidcap.read()
-        vidcap.release()
-        if ok:
-            frame_rgb = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
-            self.arrayProcessor().setArray(frame_rgb)
 
     def closeEvent(self, event: QCloseEvent):
         """Stop :meth:`mediaPlayer` before closing."""
