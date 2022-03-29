@@ -269,14 +269,13 @@ class NDArrayVideoPlayerWidget(QWidget):
         url = QUrl.fromLocalFile(path)
         self.mediaPlayer().setSource(url)
 
-        # Show the first frame. When PySide supports video preview,
-        # this can be deleted.
+        # Delete this if PySide6 supports video preview
         vidcap = cv2.VideoCapture(path)
         ok, frame = vidcap.read()
         vidcap.release()
         if ok:
             frame_rgb = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
-            self.videoLabel().setArray(frame_rgb)
+            self.arrayProcessor().setArray(frame_rgb)
 
     def closeEvent(self, event: QCloseEvent):
         self.mediaPlayer().stop()
