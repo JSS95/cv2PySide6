@@ -167,12 +167,7 @@ class NDArrayVideoPlayerWidget(QWidget):
         videoSink.videoFrameChanged.connect(
             self.frameToArrayConverter().setVideoFrame
         )
-        self.frameToArrayConverter().arrayChanged.connect(
-            self.arrayProcessor().setArray
-        )
-        self.arrayProcessor().arrayChanged.connect(
-            self.videoLabel().setArray
-        )
+        self.connectArrayProcessor()
         # connect other signals
         self.playButton().clicked.connect(self.onPlayButtonClicked)
         self.videoSlider().sliderPressed.connect(self.onSliderPress)
@@ -209,6 +204,27 @@ class NDArrayVideoPlayerWidget(QWidget):
 
     def arrayProcessor(self) -> ArrayProcessor:
         return self._arrayProcessor
+
+    def setArrayProcessor(self, processor: ArrayProcessor):
+        self.disconnectArrayProcessor()
+        self._arrayProcessor = processor
+        self.connectArrayProcessor()
+
+    def connectArrayProcessor(self):
+        self.frameToArrayConverter().arrayChanged.connect(
+            self.arrayProcessor().setArray
+        )
+        self.arrayProcessor().arrayChanged.connect(
+            self.videoLabel().setArray
+        )
+
+    def disconnectArrayProcessor(self):
+        self.frameToArrayConverter().arrayChanged.disconnect(
+            self.arrayProcessor().setArray
+        )
+        self.arrayProcessor().arrayChanged.disconnect(
+            self.videoLabel().setArray
+        )
 
     def playButton(self) -> QPushButton:
         return self._playButton

@@ -56,10 +56,10 @@ class CannyEdgeDetector(ArrayProcessor):
 class CannyVideoPlayerWidget(NDArrayVideoPlayerWidget):
 
     def __init__(self, parent=None):
-        self._cannyEdgeDetector = CannyEdgeDetector()
         self._cannyButton = QPushButton()
         super().__init__(parent)
 
+        self.setArrayProcessor(CannyEdgeDetector())
         self.cannyButton().setCheckable(True)
         self.cannyButton().toggled.connect(self.onCannyButtonToggle)
 
@@ -67,9 +67,6 @@ class CannyVideoPlayerWidget(NDArrayVideoPlayerWidget):
         super().initUI()
         self.cannyButton().setText('Toggle edge detection')
         self.layout().addWidget(self.cannyButton())
-
-    def arrayProcessor(self) -> CannyEdgeDetector:
-        return self._cannyEdgeDetector
 
     def cannyButton(self) -> QPushButton:
         return self._cannyButton
