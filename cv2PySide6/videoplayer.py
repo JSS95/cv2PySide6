@@ -2,7 +2,7 @@ import cv2 # type: ignore
 import numpy as np
 from numpy.typing import NDArray
 from PySide6.QtCore import Qt, QPointF, QObject, Signal, Slot, QUrl
-from PySide6.QtGui import QMouseEvent, QCloseEvent
+from PySide6.QtGui import QMouseEvent, QImage, QCloseEvent
 from PySide6.QtWidgets import (QSlider, QStyleOptionSlider, QStyle, QWidget,
     QPushButton, QHBoxLayout, QVBoxLayout)
 from PySide6.QtMultimedia import QMediaPlayer, QVideoSink, QVideoFrame
@@ -82,12 +82,19 @@ class FrameToArrayConverter(QObject):
         :meth:`setArray`.
         """
         qimg = frame.toImage()
+        if qimg.isNull() and self.ignoreNullFrame():
+            pass
+        else:
+            array = self.convertQImageToArray(qimg)
+            self.arrayChanged.emit(array)
+
+    @staticmethod
+    def convertQImageToArray(qimg: QImage) -> NDArray:
         if not qimg.isNull():
             array = rgb_view(qimg)
-            self.arrayChanged.emit(array)
-        elif not self.ignoreNullFrame():
+        else:
             array = np.empty((0, 0, 0))
-            self.arrayChanged.emit(array)
+        return array
 
 
 class ArrayProcessor(QObject):
