@@ -10,6 +10,10 @@ from cv2PySide6 import ArrayProcessor, NDArrayVideoPlayerWidget
 
 
 class CannyEdgeDetector(ArrayProcessor):
+    """
+    Video pipeline component to perform Canny edge detection on numpy
+    array.
+    """
 
     def __init__(self, parent=None):
         super().__init__(parent)
@@ -17,9 +21,11 @@ class CannyEdgeDetector(ArrayProcessor):
         self._canny_mode = False
 
     def currentArray(self) -> NDArray:
+        """Last array passed to :meth:`setArray`."""
         return self._currentArray
 
     def cannyMode(self) -> bool:
+        """If False, Canny edge detection is not performed."""
         return self._canny_mode
 
     @Slot(bool)
@@ -32,6 +38,7 @@ class CannyEdgeDetector(ArrayProcessor):
         super().setArray(array)
 
     def processArray(self, array: NDArray) -> NDArray:
+        """Perform Canny edge detection."""
         array = super().processArray(array)
         if self.cannyMode():
             gray = cv2.cvtColor(array, cv2.COLOR_RGB2GRAY)

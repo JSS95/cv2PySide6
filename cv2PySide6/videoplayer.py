@@ -20,7 +20,7 @@ __all__ = [
 
 
 class ClickableSlider(QSlider):
-    """QSlider whose groove can be clicked to move to position."""
+    """``QSlider`` whose groove can be clicked to move to position."""
     # https://stackoverflow.com/questions/52689047
     def mousePressEvent(self, event: QMouseEvent):
         if event.button() == Qt.LeftButton:
@@ -69,10 +69,15 @@ class FrameToArrayConverter(QObject):
         self._ignoreNullFrame = True
 
     def ignoreNullFrame(self) -> bool:
+        """
+        If True, null ``QVideoFrame`` passed to :meth:`setVideoFrame`
+        will be ignored.
+        """
         return self._ignoreNullFrame
 
     @Slot(bool)
     def setIgnoreNullFrame(self, ignore: bool):
+        """Update :meth:`ignoreNullFrame`."""
         self._ignoreNullFrame = ignore
 
     @Slot(QVideoFrame)
@@ -90,6 +95,10 @@ class FrameToArrayConverter(QObject):
 
     @staticmethod
     def convertQImageToArray(qimg: QImage) -> NDArray:
+        """
+        Convert *qimg* to numpy array. Null image is converted to
+        empty array.
+        """
         if not qimg.isNull():
             array = rgb_view(qimg)
         else:
@@ -278,5 +287,6 @@ class NDArrayVideoPlayerWidget(QWidget):
             self.arrayProcessor().setArray(frame_rgb)
 
     def closeEvent(self, event: QCloseEvent):
+        """Stop :meth:`mediaPlayer` before closing."""
         self.mediaPlayer().stop()
         event.accept()
