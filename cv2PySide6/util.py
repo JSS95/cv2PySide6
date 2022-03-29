@@ -1,3 +1,7 @@
+"""
+General utility functions.
+"""
+
 import cv2PySide6
 import os
 
