@@ -1,3 +1,7 @@
+"""
+Labels to display frames from image or video.
+"""
+
 import enum
 import numpy as np
 from PySide6.QtCore import Qt, Slot
