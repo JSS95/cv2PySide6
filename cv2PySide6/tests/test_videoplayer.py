@@ -12,7 +12,7 @@ VID_PATH = get_data_path('hello.mp4')
 
 def test_NDArrayVideoPlayerWidget(qtbot):
     vpwidget = NDArrayVideoPlayerWidget()
-    vpwidget._video_widget.setPixmapScaleMode(ScalableQLabel.PM_NoScale)
+    vpwidget.videoLabel().setPixmapScaleMode(ScalableQLabel.PM_NoScale)
 
     # open video to videoplayer
     vpwidget.open(VID_PATH)
@@ -26,7 +26,7 @@ def test_NDArrayVideoPlayerWidget(qtbot):
     cap.release()
     ff_bgra = cv2.cvtColor(first_frame, cv2.COLOR_BGR2RGBA)
     first_qimage = QPixmap.fromImage(array2qimage(ff_bgra)).toImage()
-    assert vpwidget._video_widget.pixmap().toImage() == first_qimage
+    assert vpwidget.videoLabel().pixmap().toImage() == first_qimage
 
     # test that video is played, and stopped when ends
     vpwidget.mediaPlayer().setPlaybackRate(100)
@@ -43,6 +43,6 @@ def test_NDArrayVideoPlayerWidget(qtbot):
     with qtbot.waitSignals(signals, raising=True, check_params_cbs=callbacks):
         qtbot.mouseClick(vpwidget.playButton(), Qt.LeftButton)
     # test last frame is displayed
-    assert not vpwidget._video_widget.pixmap().toImage().isNull()
+    assert not vpwidget.videoLabel().pixmap().toImage().isNull()
 
     # XXX: add tests for other features

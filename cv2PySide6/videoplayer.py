@@ -112,17 +112,17 @@ class NDArrayVideoPlayerWidget(QWidget):
         super().__init__(parent)
 
         self._mediaPlayer = QMediaPlayer()
-        self._arraySource = QVideoFrame2Array(self)
+        self._arraySource = QVideoFrame2Array()
         self._playButton = QPushButton()
         self._videoSlider = ClickableSlider()
-        self._video_widget = NDArrayLabel()
+        self._videoLabel = NDArrayLabel()
         self._pausedBySliderPress = False
 
         # connect video pipeline
         videoSink = QVideoSink(self)
         self.mediaPlayer().setVideoSink(videoSink)
         videoSink.videoFrameChanged.connect(self.arraySource().setVideoFrame)
-        self.arraySource().arrayChanged.connect(self._video_widget.setArray)
+        self.arraySource().arrayChanged.connect(self.videoLabel().setArray)
         # connect other signals
         self.mediaPlayer().playbackStateChanged.connect(
             self.onPlaybackStateChange
@@ -133,7 +133,7 @@ class NDArrayVideoPlayerWidget(QWidget):
         self.videoSlider().valueChanged.connect(self.onSliderValueChange)
         self.videoSlider().sliderPressed.connect(self.onSliderPress)
         self.videoSlider().sliderReleased.connect(self.onSliderRelease)
-        self._video_widget.setAlignment(Qt.AlignCenter)
+        self.videoLabel().setAlignment(Qt.AlignCenter)
 
         self.initUI()
 
@@ -146,7 +146,7 @@ class NDArrayVideoPlayerWidget(QWidget):
         control_layout.addWidget(self.videoSlider())
 
         layout = QVBoxLayout()
-        layout.addWidget(self._video_widget)
+        layout.addWidget(self.videoLabel())
         layout.addLayout(control_layout)
         self.setLayout(layout)
 
@@ -161,6 +161,9 @@ class NDArrayVideoPlayerWidget(QWidget):
 
     def videoSlider(self) -> ClickableSlider:
         return self._videoSlider
+
+    def videoLabel(self) -> NDArrayLabel:
+        return self._videoLabel
 
     def pausedBySliderPress(self) -> bool:
         """If true, video is paused by pressing slider."""
@@ -229,4 +232,4 @@ class NDArrayVideoPlayerWidget(QWidget):
         vidcap.release()
         if ok:
             frame_rgb = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
-            self.arraySource().setArray(frame_rgb)
+            self.videoLabel().setArray(frame_rgb)
