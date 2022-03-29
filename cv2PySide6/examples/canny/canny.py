@@ -7,10 +7,10 @@ from numpy.typing import NDArray
 from PySide6.QtCore import Slot
 from PySide6.QtWidgets import QPushButton
 from PySide6.QtMultimedia import QMediaPlayer
-from cv2PySide6 import QVideoFrame2Array, NDArrayVideoPlayerWidget
+from cv2PySide6 import FrameToArrayConverter, NDArrayVideoPlayerWidget
 
 
-class CannyEdgeDetector(QVideoFrame2Array):
+class CannyEdgeDetector(FrameToArrayConverter):
 
     class CannyMode(enum.Enum):
         Off = 0

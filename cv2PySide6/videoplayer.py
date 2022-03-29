@@ -12,50 +12,17 @@ from .utilwidgets import ClickableSlider
 
 
 __all__ = [
-    'QVideoFrameToArrayConverter',
-    'QVideoFrame2Array',
+    'FrameToArrayConverter',
     'NDArrayVideoPlayerWidget',
 ]
 
 
-class QVideoFrameToArrayConverter(QObject):
+class FrameToArrayConverter(QObject):
     """
     Video pipeline component which converts ``QVideoFrame`` to numpy
     array and emits to :attr:`arrayChanged`.
     """
     arrayChanged = Signal(np.ndarray)
-
-    @staticmethod
-    def convertQVideoFrameToArray(frame: QVideoFrame):
-        """Converts *frame* to numpy array."""
-        qimg = frame.toImage()
-        if not qimg.isNull():
-            array = rgb_view(qimg)
-        else:
-            array = np.empty((0, 0, 0))
-        return array
-
-    @Slot(QVideoFrame)
-    def setVideoFrame(self, frame: QVideoFrame):
-        array = self.convertQVideoFrameToArray(frame)
-        self.arrayChanged.emit(array)
-
-
-class QVideoFrame2Array(QObject):
-    """
-    Class to convert ``QVideoFrame`` to :class:`numpy.ndarray`, perform
-    image processing, then emit.
-
-    This class acquires ``QVideoFrame`` from ``QVideoSink`` via
-    :meth:`setVideoFrame` slot. Then it converts it to
-    :class:`numpy.ndarray`, process with :meth:`processArray`, and emit
-    via :attr:`arrayChanged` signal. 
-
-    """
-    arrayChanged = Signal(np.ndarray)
-
-    def __init__(self, parent=None):
-        super().__init__(parent)
 
     @Slot(QVideoFrame)
     def setVideoFrame(self, frame: QVideoFrame):
@@ -66,24 +33,9 @@ class QVideoFrame2Array(QObject):
         qimg = frame.toImage()
         if not qimg.isNull():
             array = rgb_view(qimg)
-            self.setArray(array)
-
-    def setArray(self, array: np.ndarray):
-        """
-        Update :meth:`array`, and emit processed array to
-        :attr:`arrayChanged`.
-
-        See Also
-        ========
-
-        processArray
-
-        """
-        self.arrayChanged.emit(self.processArray(array))
-
-    def processArray(self, array: np.ndarray) -> np.ndarray:
-        """Process and return *array*. Subclass may override this."""
-        return array
+        else:
+            array = np.empty((0, 0, 0))
+        self.arrayChanged.emit(array)
 
 
 class NDArrayVideoPlayerWidget(QWidget):
@@ -112,7 +64,7 @@ class NDArrayVideoPlayerWidget(QWidget):
         super().__init__(parent)
 
         self._mediaPlayer = QMediaPlayer()
-        self._arraySource = QVideoFrame2Array()
+        self._arraySource = FrameToArrayConverter()
         self._playButton = QPushButton()
         self._videoSlider = ClickableSlider()
         self._videoLabel = NDArrayLabel()
@@ -153,7 +105,7 @@ class NDArrayVideoPlayerWidget(QWidget):
     def mediaPlayer(self) -> QMediaPlayer:
         return self._mediaPlayer
 
-    def arraySource(self) -> QVideoFrame2Array:
+    def arraySource(self) -> FrameToArrayConverter:
         return self._arraySource
 
     def playButton(self) -> QPushButton:

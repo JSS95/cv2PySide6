@@ -3,8 +3,7 @@ from .version import __version__ # noqa
 
 from .utilwidgets import ClickableSlider
 from .labels import ScalableQLabel, NDArrayLabel
-from .videoplayer import (QVideoFrameToArrayConverter, QVideoFrame2Array,
-    NDArrayVideoPlayerWidget)
+from .videoplayer import FrameToArrayConverter, NDArrayVideoPlayerWidget
 from .util import get_data_path
 
 
@@ -14,8 +13,7 @@ __all__ = [
     'ScalableQLabel',
     'NDArrayLabel',
 
-    'QVideoFrameToArrayConverter',
-    'QVideoFrame2Array',
+    'FrameToArrayConverter',
     'NDArrayVideoPlayerWidget',
 
     'get_data_path',
