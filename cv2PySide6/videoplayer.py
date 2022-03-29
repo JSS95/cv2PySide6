@@ -64,6 +64,10 @@ class NDArrayVideoPlayerWidget(QWidget):
     """
     Video player widget with play-pause button and position slider.
 
+    ``QVideoFrame`` from :meth:`mediaPlayer` passes
+    :meth:`frameToArrayConverter` and then :meth:`arrayProcessor` to
+    be processed, and then displayed on :meth:`videoLabel`.
+
     Examples
     ========
 
@@ -74,8 +78,6 @@ class NDArrayVideoPlayerWidget(QWidget):
     >>> def runGUI():
     ...     app = QApplication(sys.argv)
     ...     player = NDArrayVideoPlayerWidget()
-    ...     geometry = player.screen().availableGeometry()
-    ...     player.resize(geometry.width() / 3, geometry.height() / 2)
     ...     player.open(vidpath)
     ...     player.show()
     ...     app.exec()
