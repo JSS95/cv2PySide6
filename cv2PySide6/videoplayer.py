@@ -167,12 +167,7 @@ class NDArrayVideoPlayerWidget(QWidget):
         videoSink.videoFrameChanged.connect(
             self.frameToArrayConverter().setVideoFrame
         )
-        self.frameToArrayConverter().arrayChanged.connect(
-            self.arrayProcessor().setArray
-        )
-        self.arrayProcessor().arrayChanged.connect(
-            self.videoLabel().setArray
-        )
+        self.connectArrayProcessor()
         # connect other signals
         self.playButton().clicked.connect(self.onPlayButtonClicked)
         self.videoSlider().sliderPressed.connect(self.onSliderPress)
@@ -181,6 +176,7 @@ class NDArrayVideoPlayerWidget(QWidget):
         self.mediaPlayer().playbackStateChanged.connect(
             self.onPlaybackStateChange
         )
+        self.mediaPlayer().sourceChanged.connect(self.onMediaSourceChange)
         self.mediaPlayer().positionChanged.connect(self.onMediaPositionChange)
         self.mediaPlayer().durationChanged.connect(self.onMediaDurationChange)
         self.videoLabel().setAlignment(Qt.AlignCenter)
@@ -201,22 +197,65 @@ class NDArrayVideoPlayerWidget(QWidget):
         self.setLayout(layout)
 
     def mediaPlayer(self) -> QMediaPlayer:
+        """
+        Media player to produce ``QVideoFrame`` stream from local file
+        and provide to :meth:`frameToArrayConverter`.
+        """
         return self._mediaPlayer
 
     def frameToArrayConverter(self) -> FrameToArrayConverter:
+        """
+        Converts ``QVideoFrame`` from video sink of :meth:`mediaPlayer`
+        to numpy array and provide to :meth:`arrayProcessor`.
+        """
         return self._frameToArrayConverter
 
     def arrayProcessor(self) -> ArrayProcessor:
+        """
+        Process the array from :meth:`frameToArrayConverter` and provide
+        to :meth:`videoLabel`.
+        """
         return self._arrayProcessor
+
+    def setArrayProcessor(self, processor: ArrayProcessor):
+        """
+        Change :meth:`arrayProcessor` and update signal connections.
+        """
+        self.disconnectArrayProcessor()
+        self._arrayProcessor = processor
+        self.connectArrayProcessor()
+
+    def connectArrayProcessor(self):
+        """
+        Connect signals to and slots from :meth:`arrayProcessor`.
+        """
+        self.frameToArrayConverter().arrayChanged.connect(
+            self.arrayProcessor().setArray
+        )
+        self.arrayProcessor().arrayChanged.connect(
+            self.videoLabel().setArray
+        )
+
+    def disconnectArrayProcessor(self):
+        """
+        Discoonnect signals to and slots from :meth:`arrayProcessor`.
+        """
+        self.frameToArrayConverter().arrayChanged.disconnect(
+            self.arrayProcessor().setArray
+        )
+        self.arrayProcessor().arrayChanged.disconnect(
+            self.videoLabel().setArray
+        )
+
+    def videoLabel(self) -> NDArrayLabel:
+        """Label to display video image."""
+        return self._videoLabel
 
     def playButton(self) -> QPushButton:
         return self._playButton
 
     def videoSlider(self) -> ClickableSlider:
         return self._videoSlider
-
-    def videoLabel(self) -> NDArrayLabel:
-        return self._videoLabel
 
     def pausedBySliderPress(self) -> bool:
         """If true, video is paused by pressing slider."""
@@ -262,6 +301,17 @@ class NDArrayVideoPlayerWidget(QWidget):
             self.playButton().setIcon(play_icon)
             self.frameToArrayConverter().setIgnoreNullFrame(False)
 
+    @Slot(QUrl)
+    def onMediaSourceChange(self, source: QUrl):
+        """Display the first frame of the media."""
+        # Delete this when PySide6 supports video preview
+        vidcap = cv2.VideoCapture(source.toLocalFile())
+        ok, frame = vidcap.read()
+        vidcap.release()
+        if ok:
+            frame_rgb = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
+            self.arrayProcessor().setArray(frame_rgb)
+
     @Slot(int)
     def onMediaPositionChange(self, position: int):
         """Change the position of video position slider button."""
@@ -277,14 +327,6 @@ class NDArrayVideoPlayerWidget(QWidget):
         self.mediaPlayer().stop()
         url = QUrl.fromLocalFile(path)
         self.mediaPlayer().setSource(url)
-
-        # Delete this if PySide6 supports video preview
-        vidcap = cv2.VideoCapture(path)
-        ok, frame = vidcap.read()
-        vidcap.release()
-        if ok:
-            frame_rgb = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
-            self.arrayProcessor().setArray(frame_rgb)
 
     def closeEvent(self, event: QCloseEvent):
         """Stop :meth:`mediaPlayer` before closing."""
