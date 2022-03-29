@@ -1,79 +1,63 @@
-"""Canny edge detection example"""
-
+"""Video processor example with canny edge detection."""
 
 import cv2 # type: ignore
-import enum
 from numpy.typing import NDArray
 from PySide6.QtCore import Slot
 from PySide6.QtWidgets import QPushButton
 from PySide6.QtMultimedia import QMediaPlayer
-from cv2PySide6 import FrameToArrayConverter, NDArrayVideoPlayerWidget
+from cv2PySide6 import ArrayProcessor, NDArrayVideoPlayerWidget
 
 
-class CannyEdgeDetector(FrameToArrayConverter):
-
-    class CannyMode(enum.Enum):
-        Off = 0
-        On = 1
-
-    CannyOff = CannyMode.Off
-    CannyOn = CannyMode.On
+class CannyEdgeDetector(ArrayProcessor):
 
     def __init__(self, parent=None):
         super().__init__(parent)
-        self.setCannyMode(self.CannyOff)
+        self._canny_mode = False
 
-    def cannyMode(self) -> CannyMode:
+    def cannyMode(self) -> bool:
         return self._canny_mode
 
-    def setCannyMode(self, mode: CannyMode):
-        self._canny_mode = mode
-
     @Slot(bool)
-    def toggleCanny(self, state: bool):
-        if state:
-            mode = self.CannyOn
-        else:
-            mode = self.CannyOff
-        self.setCannyMode(mode)
+    def setCannyMode(self, mode: bool):
+        self._canny_mode = mode
 
     def processArray(self, array: NDArray) -> NDArray:
         array = super().processArray(array)
-        if self.cannyMode() == self.CannyOn:
+        if self.cannyMode():
             gray = cv2.cvtColor(array, cv2.COLOR_RGB2GRAY)
             canny = cv2.Canny(gray, 50, 200)
             ret = cv2.cvtColor(canny, cv2.COLOR_GRAY2RGB)
-        elif self.cannyMode() == self.CannyOff:
-            ret = array
         else:
-            raise TypeError("Wrong canny mode : %s" % self.cannyMode())
+            ret = array
         return ret
-
-    def resetArray(self):
-        self.arrayChanged.emit(self.processArray(self.array()))
 
 
 class CannyVideoPlayerWidget(NDArrayVideoPlayerWidget):
 
-    def constructWidgets(self):
-        super().constructWidgets()
-        self._canny_button = QPushButton("Canny")
+    def __init__(self, parent=None):
+        self._cannyEdgeDetector = CannyEdgeDetector()
+        self._cannyButton = QPushButton()
+        super().__init__(parent)
 
-    def initWidgets(self):
-        self._array_source = CannyEdgeDetector()
-        self._video_widget.setArraySource(self._array_source)
-        super().initWidgets()
-        self._canny_button.setCheckable(True)
-        self._canny_button.toggled.connect(self.toggleCanny)
+        self.cannyButton().setCheckable(True)
+        self.cannyButton().toggled.connect(self.onCannyButtonToggle)
 
     def initUI(self):
         super().initUI()
-        self._main_layout.addWidget(self._canny_button)
+        self.cannyButton().setText('Toggle edge detection')
+        self.layout().addWidget(self.cannyButton())
 
-    def toggleCanny(self, state: bool):
-        self._array_source.toggleCanny(state)
-        if self._player.playbackState() != QMediaPlayer.PlayingState:
-            self._array_source.resetArray()
+    def arrayProcessor(self) -> CannyEdgeDetector:
+        return self._cannyEdgeDetector
+
+    def cannyButton(self) -> QPushButton:
+        return self._cannyButton
+
+    @Slot(bool)
+    def onCannyButtonToggle(self, state: bool):
+        self.arrayProcessor().setCannyMode(state)
+        if self.mediaPlayer().playbackState() != QMediaPlayer.PlayingState:
+            pass
 
 
 if __name__ == "__main__":
