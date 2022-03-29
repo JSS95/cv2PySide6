@@ -1,5 +1,6 @@
 import cv2 # type: ignore
 import numpy as np
+from numpy.typing import NDArray
 from PySide6.QtCore import Qt, QObject, Signal, Slot, QUrl
 from PySide6.QtGui import QCloseEvent
 from PySide6.QtWidgets import (QWidget, QPushButton, QStyle, QHBoxLayout,
@@ -13,6 +14,7 @@ from .utilwidgets import ClickableSlider
 
 __all__ = [
     'FrameToArrayConverter',
+    'ArrayProcessor',
     'NDArrayVideoPlayerWidget',
 ]
 
@@ -27,8 +29,8 @@ class FrameToArrayConverter(QObject):
     @Slot(QVideoFrame)
     def setVideoFrame(self, frame: QVideoFrame):
         """
-        Convert ``QVideoFrame`` to ``QImage``, then to
-        :class:`numpy.ndarray`. Pass it to :meth:`setArray`.
+        Convert ``QVideoFrame`` to :class:`numpy.ndarray` and emit to
+        :meth:`setArray`.
         """
         qimg = frame.toImage()
         if not qimg.isNull():
@@ -36,6 +38,26 @@ class FrameToArrayConverter(QObject):
         else:
             array = np.empty((0, 0, 0))
         self.arrayChanged.emit(array)
+
+
+class ArrayProcessor(QObject):
+    """
+    Video pipeline object to process numpy array and emit to
+    :attr:`arrayChanged`.
+    """
+    arrayChanged = Signal(np.ndarray)
+
+    @Slot(np.ndarray)
+    def setArray(self, array: NDArray):
+        """
+        Process *array* with :meth:`processArray` and emit to
+        :attr:`arrayChanged`.
+        """
+        self.arrayChanged.emit(self.processArray(array))
+
+    def processArray(self, array: NDArray):
+        """Process and return *array*."""
+        return array
 
 
 class NDArrayVideoPlayerWidget(QWidget):
@@ -64,7 +86,8 @@ class NDArrayVideoPlayerWidget(QWidget):
         super().__init__(parent)
 
         self._mediaPlayer = QMediaPlayer()
-        self._arraySource = FrameToArrayConverter()
+        self._frameToArrayConverter = FrameToArrayConverter()
+        self._arrayProcessor = ArrayProcessor()
         self._playButton = QPushButton()
         self._videoSlider = ClickableSlider()
         self._videoLabel = NDArrayLabel()
@@ -73,8 +96,15 @@ class NDArrayVideoPlayerWidget(QWidget):
         # connect video pipeline
         videoSink = QVideoSink(self)
         self.mediaPlayer().setVideoSink(videoSink)
-        videoSink.videoFrameChanged.connect(self.arraySource().setVideoFrame)
-        self.arraySource().arrayChanged.connect(self.videoLabel().setArray)
+        videoSink.videoFrameChanged.connect(
+            self.frameToArrayConverter().setVideoFrame
+        )
+        self.frameToArrayConverter().arrayChanged.connect(
+            self.arrayProcessor().setArray
+        )
+        self.arrayProcessor().arrayChanged.connect(
+            self.videoLabel().setArray
+        )
         # connect other signals
         self.mediaPlayer().playbackStateChanged.connect(
             self.onPlaybackStateChange
@@ -105,8 +135,11 @@ class NDArrayVideoPlayerWidget(QWidget):
     def mediaPlayer(self) -> QMediaPlayer:
         return self._mediaPlayer
 
-    def arraySource(self) -> FrameToArrayConverter:
-        return self._arraySource
+    def frameToArrayConverter(self) -> FrameToArrayConverter:
+        return self._frameToArrayConverter
+
+    def arrayProcessor(self) -> ArrayProcessor:
+        return self._arrayProcessor
 
     def playButton(self) -> QPushButton:
         return self._playButton
