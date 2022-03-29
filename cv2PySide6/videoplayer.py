@@ -106,15 +106,15 @@ class NDArrayVideoPlayerWidget(QWidget):
             self.videoLabel().setArray
         )
         # connect other signals
+        self.playButton().clicked.connect(self.onPlayButtonClicked)
+        self.videoSlider().sliderPressed.connect(self.onSliderPress)
+        self.videoSlider().sliderReleased.connect(self.onSliderRelease)
+        self.videoSlider().valueChanged.connect(self.onSliderValueChange)
         self.mediaPlayer().playbackStateChanged.connect(
             self.onPlaybackStateChange
         )
         self.mediaPlayer().positionChanged.connect(self.onMediaPositionChange)
         self.mediaPlayer().durationChanged.connect(self.onMediaDurationChange)
-        self.playButton().clicked.connect(self.onPlayButtonClicked)
-        self.videoSlider().valueChanged.connect(self.onSliderValueChange)
-        self.videoSlider().sliderPressed.connect(self.onSliderPress)
-        self.videoSlider().sliderReleased.connect(self.onSliderRelease)
         self.videoLabel().setAlignment(Qt.AlignCenter)
 
         self.initUI()
@@ -162,32 +162,25 @@ class NDArrayVideoPlayerWidget(QWidget):
         else:
             self.mediaPlayer().play()
 
-    @Slot(int)
-    def onMediaPositionChange(self, position: int):
-        """Change the position of video position slider button."""
-        self.videoSlider().setValue(position)
-
-    @Slot(int)
-    def onMediaDurationChange(self, duration: int):
-        """Change the range of video position slider."""
-        self.videoSlider().setRange(0, duration)
-
-    def onSliderValueChange(self, position: int):
-        """Set the position of media player."""
-        self.mediaPlayer().setPosition(position)
-
+    @Slot()
     def onSliderPress(self):
         """Pause if the video was playing."""
         if self.mediaPlayer().playbackState() == QMediaPlayer.PlayingState:
             self._pausedBySliderPress = True
             self.mediaPlayer().pause()
 
+    @Slot()
     def onSliderRelease(self):
         """Play if the video was paused by :meth:`onSliderPress`."""
         if self.mediaPlayer().playbackState() == QMediaPlayer.PausedState:
             if self.pausedBySliderPress():
                 self._pausedBySliderPress = False
                 self.mediaPlayer().play()
+
+    @Slot(int)
+    def onSliderValueChange(self, position: int):
+        """Set the position of media player."""
+        self.mediaPlayer().setPosition(position)
 
     @Slot(QMediaPlayer.PlaybackState)
     def onPlaybackStateChange(self, state: QMediaPlayer.PlaybackState):
@@ -199,11 +192,16 @@ class NDArrayVideoPlayerWidget(QWidget):
             play_icon = self.style().standardIcon(QStyle.SP_MediaPlay)
             self.playButton().setIcon(play_icon)
 
-    def closeEvent(self, event: QCloseEvent):
-        self.mediaPlayer().stop()
-        event.accept()
+    @Slot(int)
+    def onMediaPositionChange(self, position: int):
+        """Change the position of video position slider button."""
+        self.videoSlider().setValue(position)
 
-    @Slot(str)
+    @Slot(int)
+    def onMediaDurationChange(self, duration: int):
+        """Change the range of video position slider."""
+        self.videoSlider().setRange(0, duration)
+
     def open(self, path: str):
         """Set the video in path as source, and display first frame."""
         self.mediaPlayer().stop()
@@ -218,3 +216,7 @@ class NDArrayVideoPlayerWidget(QWidget):
         if ok:
             frame_rgb = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
             self.videoLabel().setArray(frame_rgb)
+
+    def closeEvent(self, event: QCloseEvent):
+        self.mediaPlayer().stop()
+        event.accept()
