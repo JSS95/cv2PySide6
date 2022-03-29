@@ -1,6 +1,7 @@
 """Video processor example with canny edge detection."""
 
 import cv2 # type: ignore
+import numpy as np
 from numpy.typing import NDArray
 from PySide6.QtCore import Slot
 from PySide6.QtWidgets import QPushButton
@@ -12,7 +13,11 @@ class CannyEdgeDetector(ArrayProcessor):
 
     def __init__(self, parent=None):
         super().__init__(parent)
+        self._currentArray = np.array((0, 0, 0))
         self._canny_mode = False
+
+    def currentArray(self) -> NDArray:
+        return self._currentArray
 
     def cannyMode(self) -> bool:
         return self._canny_mode
@@ -20,6 +25,11 @@ class CannyEdgeDetector(ArrayProcessor):
     @Slot(bool)
     def setCannyMode(self, mode: bool):
         self._canny_mode = mode
+
+    @Slot(np.ndarray)
+    def setArray(self, array: NDArray):
+        self._currentArray = array.copy()
+        super().setArray(array)
 
     def processArray(self, array: NDArray) -> NDArray:
         array = super().processArray(array)
@@ -30,6 +40,10 @@ class CannyEdgeDetector(ArrayProcessor):
         else:
             ret = array
         return ret
+
+    def refreshCurrentArray(self):
+        """Re-process and emit :meth:`currentArray`."""
+        self.setArray(self.currentArray())
 
 
 class CannyVideoPlayerWidget(NDArrayVideoPlayerWidget):
@@ -57,7 +71,7 @@ class CannyVideoPlayerWidget(NDArrayVideoPlayerWidget):
     def onCannyButtonToggle(self, state: bool):
         self.arrayProcessor().setCannyMode(state)
         if self.mediaPlayer().playbackState() != QMediaPlayer.PlayingState:
-            pass
+            self.arrayProcessor().refreshCurrentArray()
 
 
 if __name__ == "__main__":
