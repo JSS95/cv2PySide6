@@ -18,10 +18,10 @@ __all__ = [
 ]
 
 
-class QVideoFrameToArrayConverter(QVideoSink):
+class QVideoFrameToArrayConverter(QObject):
     """
-    Video sink which converts ``QVideoFrame`` to numpy array and emits
-    to :attr:`arrayChanged`.
+    Video pipeline component which converts ``QVideoFrame`` to numpy
+    array and emits to :attr:`arrayChanged`.
     """
     arrayChanged = Signal(np.ndarray)
 
@@ -37,7 +37,6 @@ class QVideoFrameToArrayConverter(QVideoSink):
 
     @Slot(QVideoFrame)
     def setVideoFrame(self, frame: QVideoFrame):
-        super().setVideoFrame(frame)
         array = self.convertQVideoFrameToArray(frame)
         self.arrayChanged.emit(array)
 
@@ -47,7 +46,7 @@ class QVideoFrame2Array(QObject):
     Class to convert ``QVideoFrame`` to :class:`numpy.ndarray`, perform
     image processing, then emit.
 
-    This class acquires ``QVideoFrame`` from :meth:`frameSource` via
+    This class acquires ``QVideoFrame`` from ``QVideoSink`` via
     :meth:`setVideoFrame` slot. Then it converts it to
     :class:`numpy.ndarray`, process with :meth:`processArray`, and emit
     via :attr:`arrayChanged` signal. 
@@ -57,13 +56,6 @@ class QVideoFrame2Array(QObject):
 
     def __init__(self, parent=None):
         super().__init__(parent)
-        self._frame_source = QVideoSink()
-
-        self._frame_source.videoFrameChanged.connect(self.setVideoFrame)
-
-    def frameSource(self) -> QVideoSink:
-        """Upstream source which provides ``QVideoFrame``."""
-        return self._frame_source
 
     @Slot(QVideoFrame)
     def setVideoFrame(self, frame: QVideoFrame):
@@ -126,11 +118,15 @@ class NDArrayVideoPlayerWidget(QWidget):
         self._video_widget = NDArrayLabel()
         self._pausedBySliderPress = False
 
-        videoSink = self.arraySource().frameSource()
+        # connect video pipeline
+        videoSink = QVideoSink(self)
         self.mediaPlayer().setVideoSink(videoSink)
         videoSink.videoFrameChanged.connect(self.arraySource().setVideoFrame)
         self.arraySource().arrayChanged.connect(self._video_widget.setArray)
-        self.mediaPlayer().playbackStateChanged.connect(self.onPlaybackStateChange)
+        # connect other signals
+        self.mediaPlayer().playbackStateChanged.connect(
+            self.onPlaybackStateChange
+        )
         self.mediaPlayer().positionChanged.connect(self.onMediaPositionChange)
         self.mediaPlayer().durationChanged.connect(self.onMediaDurationChange)
         self.playButton().clicked.connect(self.onPlayButtonClicked)
