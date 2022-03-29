@@ -23,23 +23,31 @@ class NDArrayVideoWidget(QWidget):
     """
     Widget to display video from numpy array images.
 
-    To display video stream, construct a thread which produces arrays
-    and feed them to :meth:`arrayProcessor`.
+    To display video stream, construct a video pipeline which produces
+    numpy arrays and feed them to :meth:`arrayProcessor`.
 
     Examples
     ========
 
-    >>> import cv2
+    >>> from PySide6.QtCore import QUrl
     >>> from PySide6.QtWidgets import QApplication
+    >>> from PySide6.QtMultimedia import QMediaPlayer, QVideoSink
     >>> import sys
-    >>> from cv2PySide6 import get_data_path, NDArrayVideoWidget
-    >>> img = cv2.imread(get_data_path("hello.jpg"))
-    >>> rgb_img = cv2.cvtColor(img, cv2.COLOR_BGR2RGB)
+    >>> from cv2PySide6 import (get_data_path, NDArrayVideoWidget,
+    ...     FrameToArrayConverter)
+    >>> vidpath = get_data_path("hello.mp4")
     >>> def runGUI():
     ...     app = QApplication(sys.argv)
-    ...     widget = NDArrayVideoWidget()
-    ...     widget.arrayProcessor().setArray(rgb_img)
-    ...     widget.show()
+    ...     w = NDArrayVideoWidget()
+    ...     mediaPlayer = QMediaPlayer(w)
+    ...     videoSink = QVideoSink(w)
+    ...     frame2Arr = FrameToArrayConverter(w)
+    ...     mediaPlayer.setVideoSink(videoSink)
+    ...     videoSink.videoFrameChanged.connect(frame2Arr.setVideoFrame)
+    ...     frame2Arr.arrayChanged.connect(w.arrayProcessor().setArray)
+    ...     mediaPlayer.setSource(QUrl.fromLocalFile(vidpath))
+    ...     w.show()
+    ...     mediaPlayer.play()
     ...     app.exec()
     ...     app.quit()
     >>> runGUI() # doctest: +SKIP
@@ -51,6 +59,7 @@ class NDArrayVideoWidget(QWidget):
         self._videoLabel = NDArrayLabel()
 
         self.connectArrayProcessor()
+        self.videoLabel().setAlignment(Qt.AlignCenter)
 
         self.initUI()
 
@@ -141,7 +150,6 @@ class NDArrayVideoPlayerWidget(NDArrayVideoWidget):
         self.mediaPlayer().sourceChanged.connect(self.onMediaSourceChange)
         self.mediaPlayer().positionChanged.connect(self.onMediaPositionChange)
         self.mediaPlayer().durationChanged.connect(self.onMediaDurationChange)
-        self.videoLabel().setAlignment(Qt.AlignCenter)
 
     def initUI(self):
         control_layout = QHBoxLayout()
