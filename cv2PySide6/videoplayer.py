@@ -26,6 +26,17 @@ class FrameToArrayConverter(QObject):
     """
     arrayChanged = Signal(np.ndarray)
 
+    def __init__(self, parent=None):
+        super().__init__(parent)
+        self._ignoreNullFrame = True
+
+    def ignoreNullFrame(self) -> bool:
+        return self._ignoreNullFrame
+
+    @Slot(bool)
+    def setIgnoreNullFrame(self, ignore: bool):
+        self._ignoreNullFrame = ignore
+
     @Slot(QVideoFrame)
     def setVideoFrame(self, frame: QVideoFrame):
         """
@@ -35,9 +46,10 @@ class FrameToArrayConverter(QObject):
         qimg = frame.toImage()
         if not qimg.isNull():
             array = rgb_view(qimg)
-        else:
+            self.arrayChanged.emit(array)
+        elif not self.ignoreNullFrame():
             array = np.empty((0, 0, 0))
-        self.arrayChanged.emit(array)
+            self.arrayChanged.emit(array)
 
 
 class ArrayProcessor(QObject):
@@ -190,9 +202,11 @@ class NDArrayVideoPlayerWidget(QWidget):
         if state == QMediaPlayer.PlayingState:
             pause_icon = self.style().standardIcon(QStyle.SP_MediaPause)
             self.playButton().setIcon(pause_icon)
+            self.frameToArrayConverter().setIgnoreNullFrame(True)
         else:
             play_icon = self.style().standardIcon(QStyle.SP_MediaPlay)
             self.playButton().setIcon(play_icon)
+            self.frameToArrayConverter().setIgnoreNullFrame(False)
 
     @Slot(int)
     def onMediaPositionChange(self, position: int):

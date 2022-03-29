@@ -1,7 +1,6 @@
 import cv2 # type: ignore
 from PySide6.QtGui import QPixmap, Qt
 from PySide6.QtMultimedia import QMediaPlayer
-import pytest
 from qimage2ndarray import array2qimage # type: ignore
 
 from cv2PySide6 import (get_data_path, NDArrayVideoPlayerWidget,
@@ -57,7 +56,6 @@ def test_NDArrayVideoPlayerWidget_playback(qtbot):
         qtbot.mouseClick(vpwidget.playButton(), Qt.LeftButton)
 
 
-@pytest.mark.xfail
 def test_NDArrayVideoPlayerWidget_lastframe_displayed(qtbot):
     """Test that last frame remains on the label after video ends."""
     vpwidget = NDArrayVideoPlayerWidget()
