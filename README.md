@@ -21,7 +21,7 @@ $ pip install cv2PySide6
 ## Single image
 
 `NDArrayLabel` is a label which can directly display `numpy.ndarray` object.
-To display single array, pass it directly to `NDArrayLabel.setArray`
+To display single array, pass it directly to `NDArrayLabel.setArray`.
 
 ## Video
 

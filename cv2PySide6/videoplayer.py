@@ -197,20 +197,38 @@ class NDArrayVideoPlayerWidget(QWidget):
         self.setLayout(layout)
 
     def mediaPlayer(self) -> QMediaPlayer:
+        """
+        Media player to produce ``QVideoFrame`` stream from local file
+        and provide to :meth:`frameToArrayConverter`.
+        """
         return self._mediaPlayer
 
     def frameToArrayConverter(self) -> FrameToArrayConverter:
+        """
+        Converts ``QVideoFrame`` from video sink of :meth:`mediaPlayer`
+        to numpy array and provide to :meth:`arrayProcessor`.
+        """
         return self._frameToArrayConverter
 
     def arrayProcessor(self) -> ArrayProcessor:
+        """
+        Process the array from :meth:`frameToArrayConverter` and provide
+        to :meth:`videoLabel`.
+        """
         return self._arrayProcessor
 
     def setArrayProcessor(self, processor: ArrayProcessor):
+        """
+        Change :meth:`arrayProcessor` and update signal connections.
+        """
         self.disconnectArrayProcessor()
         self._arrayProcessor = processor
         self.connectArrayProcessor()
 
     def connectArrayProcessor(self):
+        """
+        Connect signals to and slots from :meth:`arrayProcessor`.
+        """
         self.frameToArrayConverter().arrayChanged.connect(
             self.arrayProcessor().setArray
         )
@@ -219,6 +237,9 @@ class NDArrayVideoPlayerWidget(QWidget):
         )
 
     def disconnectArrayProcessor(self):
+        """
+        Discoonnect signals to and slots from :meth:`arrayProcessor`.
+        """
         self.frameToArrayConverter().arrayChanged.disconnect(
             self.arrayProcessor().setArray
         )
@@ -226,14 +247,15 @@ class NDArrayVideoPlayerWidget(QWidget):
             self.videoLabel().setArray
         )
 
+    def videoLabel(self) -> NDArrayLabel:
+        """Label to display video image."""
+        return self._videoLabel
+
     def playButton(self) -> QPushButton:
         return self._playButton
 
     def videoSlider(self) -> ClickableSlider:
         return self._videoSlider
-
-    def videoLabel(self) -> NDArrayLabel:
-        return self._videoLabel
 
     def pausedBySliderPress(self) -> bool:
         """If true, video is paused by pressing slider."""
