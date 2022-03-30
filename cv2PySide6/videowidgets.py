@@ -89,7 +89,7 @@ class NDArrayVideoWidget(QWidget):
         """
         Connect signals to and slots from :meth:`arrayProcessor`.
         """
-        self.arrayProcessor().arrayChanged.connect(
+        self.__displayConnection = self.arrayProcessor().arrayChanged.connect(
             self.videoLabel().setArray
         )
 
@@ -98,7 +98,7 @@ class NDArrayVideoWidget(QWidget):
         Discoonnect signals to and slots from :meth:`arrayProcessor`.
         """
         self.arrayProcessor().arrayChanged.disconnect(
-            self.videoLabel().setArray
+            self.__displayConnection
         )
 
     def videoLabel(self) -> NDArrayLabel:
@@ -118,13 +118,29 @@ class NDArrayVideoSeekerWidget(NDArrayVideoWidget):
     Examples
     ========
 
+    In this example, ``QMediaPlayer`` which provides video stream is set
+    as :attr:`videoSeeker` to control video position as well.
+
+    >>> from PySide6.QtCore import QUrl
     >>> from PySide6.QtWidgets import QApplication
+    >>> from PySide6.QtMultimedia import QMediaPlayer, QVideoSink
     >>> import sys
-    >>> from cv2PySide6 import NDArrayVideoSeekerWidget
+    >>> from cv2PySide6 import (get_data_path, NDArrayVideoSeekerWidget,
+    ...     FrameToArrayConverter)
+    >>> vidpath = get_data_path("hello.mp4")
     >>> def runGUI():
     ...     app = QApplication(sys.argv)
-    ...     player = NDArrayVideoSeekerWidget()
-    ...     player.show()
+    ...     w = NDArrayVideoSeekerWidget()
+    ...     mediaPlayer = QMediaPlayer(w)
+    ...     videoSink = QVideoSink(w)
+    ...     frame2Arr = FrameToArrayConverter(w)
+    ...     mediaPlayer.setVideoSink(videoSink)
+    ...     videoSink.videoFrameChanged.connect(frame2Arr.setVideoFrame)
+    ...     frame2Arr.arrayChanged.connect(w.arrayProcessor().setArray)
+    ...     mediaPlayer.setSource(QUrl.fromLocalFile(vidpath))
+    ...     w.setVideoSeeker(mediaPlayer)
+    ...     w.show()
+    ...     mediaPlayer.play()
     ...     app.exec()
     ...     app.quit()
     >>> runGUI() # doctest: +SKIP
@@ -155,18 +171,26 @@ class NDArrayVideoSeekerWidget(NDArrayVideoWidget):
 
     def connectVideoSeeker(self):
         """Connect signals to and slots from :meth:`videoSeeker`."""
-        self.videoSlider().valueChanged.connect(self.onSliderValueChange)
-        self.videoSeeker().positionChanged.connect(self.onMediaPositionChange)
-        self.videoSeeker().durationChanged.connect(self.onMediaDurationChange)
+        self.__sliderValueConnection = self.videoSlider().valueChanged.connect(
+            self.onSliderValueChange
+        )
+        self.__positionConnection = self.videoSeeker().positionChanged.connect(
+            self.onMediaPositionChange
+        )
+        self.__durationConnection = self.videoSeeker().durationChanged.connect(
+            self.onMediaDurationChange
+        )
 
     def disconnectVideoSeeker(self):
         """Disconnect signals to and slots from :meth:`videoSeeker`."""
-        self.videoSlider().valueChanged.disconnect(self.onSliderValueChange)
+        self.videoSlider().valueChanged.disconnect(
+            self.__sliderValueConnection
+        )
         self.videoSeeker().positionChanged.disconnect(
-            self.onMediaPositionChange
+            self.__positionConnection
         )
         self.videoSeeker().durationChanged.disconnect(
-            self.onMediaDurationChange
+            self.__durationConnection
         )
 
     def videoSlider(self) -> ClickableSlider:
@@ -184,6 +208,11 @@ class NDArrayVideoSeekerWidget(NDArrayVideoWidget):
     def onMediaPositionChange(self, position: int):
         """Change the position of video position slider button."""
         self.videoSlider().setValue(position)
+
+    @Slot(int)
+    def onMediaDurationChange(self, duration: int):
+        """Change the range of video position slider."""
+        self.videoSlider().setRange(0, duration)
 
 
 class NDArrayVideoPlayerWidget(NDArrayVideoWidget):
