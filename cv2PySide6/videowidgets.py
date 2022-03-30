@@ -11,7 +11,7 @@ from PySide6.QtMultimedia import QMediaPlayer, QVideoSink
 
 from .labels import NDArrayLabel
 from .videoutil import ClickableSlider, FrameToArrayConverter, ArrayProcessor
-from .typing import VideoSeekerProtocol
+from .typing import ArrayProcessorProtocol, VideoSeekerProtocol
 
 
 __all__ = [
@@ -73,11 +73,11 @@ class NDArrayVideoWidget(QWidget):
         layout.addWidget(self.videoLabel())
         self.setLayout(layout)
 
-    def arrayProcessor(self) -> ArrayProcessor:
+    def arrayProcessor(self) -> ArrayProcessorProtocol:
         """Process the array and provide to :meth:`videoLabel`."""
         return self._arrayProcessor
 
-    def setArrayProcessor(self, processor: ArrayProcessor):
+    def setArrayProcessor(self, processor: ArrayProcessorProtocol):
         """
         Change :meth:`arrayProcessor` and update signal connections.
         """
