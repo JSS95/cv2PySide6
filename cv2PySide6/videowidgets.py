@@ -5,8 +5,8 @@ Widgets to play video stream.
 import cv2 # type: ignore
 from PySide6.QtCore import Qt,Slot, QUrl
 from PySide6.QtGui import QCloseEvent
-from PySide6.QtWidgets import (QStyle, QWidget, QPushButton, QHBoxLayout,
-    QVBoxLayout)
+from PySide6.QtWidgets import (QWidget, QVBoxLayout, QHBoxLayout, QStyle,
+    QPushButton)
 from PySide6.QtMultimedia import QMediaPlayer, QVideoSink
 
 from .labels import NDArrayLabel
@@ -14,11 +14,94 @@ from .videoutil import ClickableSlider, FrameToArrayConverter, ArrayProcessor
 
 
 __all__ = [
+    'NDArrayVideoWidget',
     'NDArrayVideoPlayerWidget',
 ]
 
 
-class NDArrayVideoPlayerWidget(QWidget):
+class NDArrayVideoWidget(QWidget):
+    """
+    Widget to display video from numpy array images.
+
+    To display video stream, construct a video pipeline which produces
+    numpy arrays and feed them to :meth:`arrayProcessor`.
+
+    Examples
+    ========
+
+    >>> from PySide6.QtCore import QUrl
+    >>> from PySide6.QtWidgets import QApplication
+    >>> from PySide6.QtMultimedia import QMediaPlayer, QVideoSink
+    >>> import sys
+    >>> from cv2PySide6 import (get_data_path, NDArrayVideoWidget,
+    ...     FrameToArrayConverter)
+    >>> vidpath = get_data_path("hello.mp4")
+    >>> def runGUI():
+    ...     app = QApplication(sys.argv)
+    ...     w = NDArrayVideoWidget()
+    ...     mediaPlayer = QMediaPlayer(w)
+    ...     videoSink = QVideoSink(w)
+    ...     frame2Arr = FrameToArrayConverter(w)
+    ...     mediaPlayer.setVideoSink(videoSink)
+    ...     videoSink.videoFrameChanged.connect(frame2Arr.setVideoFrame)
+    ...     frame2Arr.arrayChanged.connect(w.arrayProcessor().setArray)
+    ...     mediaPlayer.setSource(QUrl.fromLocalFile(vidpath))
+    ...     w.show()
+    ...     mediaPlayer.play()
+    ...     app.exec()
+    ...     app.quit()
+    >>> runGUI() # doctest: +SKIP
+    """
+    def __init__(self, parent=None):
+        super().__init__(parent)
+
+        self._arrayProcessor = ArrayProcessor()
+        self._videoLabel = NDArrayLabel()
+
+        self.connectArrayProcessor()
+        self.videoLabel().setAlignment(Qt.AlignCenter)
+
+        self.initUI()
+
+    def initUI(self):
+        layout = QVBoxLayout()
+        layout.addWidget(self.videoLabel())
+        self.setLayout(layout)
+
+    def arrayProcessor(self) -> ArrayProcessor:
+        """Process the array and provide to :meth:`videoLabel`."""
+        return self._arrayProcessor
+
+    def setArrayProcessor(self, processor: ArrayProcessor):
+        """
+        Change :meth:`arrayProcessor` and update signal connections.
+        """
+        self.disconnectArrayProcessor()
+        self._arrayProcessor = processor
+        self.connectArrayProcessor()
+
+    def connectArrayProcessor(self):
+        """
+        Connect signals to and slots from :meth:`arrayProcessor`.
+        """
+        self.arrayProcessor().arrayChanged.connect(
+            self.videoLabel().setArray
+        )
+
+    def disconnectArrayProcessor(self):
+        """
+        Discoonnect signals to and slots from :meth:`arrayProcessor`.
+        """
+        self.arrayProcessor().arrayChanged.disconnect(
+            self.videoLabel().setArray
+        )
+
+    def videoLabel(self) -> NDArrayLabel:
+        """Label to display video image."""
+        return self._videoLabel
+
+
+class NDArrayVideoPlayerWidget(NDArrayVideoWidget):
     """
     Video player widget with play-pause button and position slider.
 
@@ -31,7 +114,7 @@ class NDArrayVideoPlayerWidget(QWidget):
 
     >>> from PySide6.QtWidgets import QApplication
     >>> import sys
-    >>> from cv2PySide6 import (get_data_path, NDArrayVideoPlayerWidget)
+    >>> from cv2PySide6 import get_data_path, NDArrayVideoPlayerWidget
     >>> vidpath = get_data_path("hello.mp4")
     >>> def runGUI():
     ...     app = QApplication(sys.argv)
@@ -43,15 +126,12 @@ class NDArrayVideoPlayerWidget(QWidget):
     >>> runGUI() # doctest: +SKIP
     """
     def __init__(self, parent=None):
-        super().__init__(parent)
-
         self._mediaPlayer = QMediaPlayer()
         self._frameToArrayConverter = FrameToArrayConverter()
-        self._arrayProcessor = ArrayProcessor()
         self._playButton = QPushButton()
         self._videoSlider = ClickableSlider()
-        self._videoLabel = NDArrayLabel()
         self._pausedBySliderPress = False
+        super().__init__(parent)
 
         # connect video pipeline
         videoSink = QVideoSink(self)
@@ -59,7 +139,6 @@ class NDArrayVideoPlayerWidget(QWidget):
         videoSink.videoFrameChanged.connect(
             self.frameToArrayConverter().setVideoFrame
         )
-        self.connectArrayProcessor()
         # connect other signals
         self.playButton().clicked.connect(self.onPlayButtonClicked)
         self.videoSlider().sliderPressed.connect(self.onSliderPress)
@@ -71,9 +150,6 @@ class NDArrayVideoPlayerWidget(QWidget):
         self.mediaPlayer().sourceChanged.connect(self.onMediaSourceChange)
         self.mediaPlayer().positionChanged.connect(self.onMediaPositionChange)
         self.mediaPlayer().durationChanged.connect(self.onMediaDurationChange)
-        self.videoLabel().setAlignment(Qt.AlignCenter)
-
-        self.initUI()
 
     def initUI(self):
         control_layout = QHBoxLayout()
@@ -102,47 +178,6 @@ class NDArrayVideoPlayerWidget(QWidget):
         """
         return self._frameToArrayConverter
 
-    def arrayProcessor(self) -> ArrayProcessor:
-        """
-        Process the array from :meth:`frameToArrayConverter` and provide
-        to :meth:`videoLabel`.
-        """
-        return self._arrayProcessor
-
-    def setArrayProcessor(self, processor: ArrayProcessor):
-        """
-        Change :meth:`arrayProcessor` and update signal connections.
-        """
-        self.disconnectArrayProcessor()
-        self._arrayProcessor = processor
-        self.connectArrayProcessor()
-
-    def connectArrayProcessor(self):
-        """
-        Connect signals to and slots from :meth:`arrayProcessor`.
-        """
-        self.frameToArrayConverter().arrayChanged.connect(
-            self.arrayProcessor().setArray
-        )
-        self.arrayProcessor().arrayChanged.connect(
-            self.videoLabel().setArray
-        )
-
-    def disconnectArrayProcessor(self):
-        """
-        Discoonnect signals to and slots from :meth:`arrayProcessor`.
-        """
-        self.frameToArrayConverter().arrayChanged.disconnect(
-            self.arrayProcessor().setArray
-        )
-        self.arrayProcessor().arrayChanged.disconnect(
-            self.videoLabel().setArray
-        )
-
-    def videoLabel(self) -> NDArrayLabel:
-        """Label to display video image."""
-        return self._videoLabel
-
     def playButton(self) -> QPushButton:
         return self._playButton
 
@@ -152,6 +187,24 @@ class NDArrayVideoPlayerWidget(QWidget):
     def pausedBySliderPress(self) -> bool:
         """If true, video is paused by pressing slider."""
         return self._pausedBySliderPress
+
+    def connectArrayProcessor(self):
+        """
+        Connect signals to and slots from :meth:`arrayProcessor`.
+        """
+        super().connectArrayProcessor()
+        self.frameToArrayConverter().arrayChanged.connect(
+            self.arrayProcessor().setArray
+        )
+
+    def disconnectArrayProcessor(self):
+        """
+        Discoonnect signals to and slots from :meth:`arrayProcessor`.
+        """
+        super().disconnectArrayProcessors()
+        self.frameToArrayConverter().arrayChanged.disconnect(
+            self.arrayProcessor().setArray
+        )
 
     @Slot()
     def onPlayButtonClicked(self):

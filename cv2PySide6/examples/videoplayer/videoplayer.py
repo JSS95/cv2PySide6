@@ -1,4 +1,4 @@
-"""Video processor example with canny edge detection."""
+"""Video player example with canny edge detection process."""
 
 import cv2 # type: ignore
 import numpy as np
@@ -11,8 +11,7 @@ from cv2PySide6 import ArrayProcessor, NDArrayVideoPlayerWidget
 
 class CannyEdgeDetector(ArrayProcessor):
     """
-    Video pipeline component to perform Canny edge detection on numpy
-    array.
+    Video pipeline component for Canny edge detection on numpy array.
     """
 
     def __init__(self, parent=None):
