@@ -11,23 +11,28 @@ from PySide6.QtMultimedia import QMediaPlayer, QVideoSink
 
 from .labels import NDArrayLabel
 from .videoutil import ClickableSlider, FrameToArrayConverter, ArrayProcessor
+from .typing import ArrayProcessorProtocol, VideoSeekerProtocol
 
 
 __all__ = [
     'NDArrayVideoWidget',
+    'NDArrayVideoSeekerWidget',
     'NDArrayVideoPlayerWidget',
 ]
 
 
 class NDArrayVideoWidget(QWidget):
     """
-    Widget to display video from numpy array images.
+    Widget to display video from numpy arrays.
 
     To display video stream, construct a video pipeline which produces
     numpy arrays and feed them to :meth:`arrayProcessor`.
 
     Examples
     ========
+
+    In this example, video pipeline of ``mediaPlayer -> videoSink ->
+    frame2Arr -> arrayProcessor`` is established to play video file.
 
     >>> from PySide6.QtCore import QUrl
     >>> from PySide6.QtWidgets import QApplication
@@ -68,11 +73,11 @@ class NDArrayVideoWidget(QWidget):
         layout.addWidget(self.videoLabel())
         self.setLayout(layout)
 
-    def arrayProcessor(self) -> ArrayProcessor:
+    def arrayProcessor(self) -> ArrayProcessorProtocol:
         """Process the array and provide to :meth:`videoLabel`."""
         return self._arrayProcessor
 
-    def setArrayProcessor(self, processor: ArrayProcessor):
+    def setArrayProcessor(self, processor: ArrayProcessorProtocol):
         """
         Change :meth:`arrayProcessor` and update signal connections.
         """
@@ -84,7 +89,7 @@ class NDArrayVideoWidget(QWidget):
         """
         Connect signals to and slots from :meth:`arrayProcessor`.
         """
-        self.arrayProcessor().arrayChanged.connect(
+        self.__displayConnection = self.arrayProcessor().arrayChanged.connect(
             self.videoLabel().setArray
         )
 
@@ -93,12 +98,123 @@ class NDArrayVideoWidget(QWidget):
         Discoonnect signals to and slots from :meth:`arrayProcessor`.
         """
         self.arrayProcessor().arrayChanged.disconnect(
-            self.videoLabel().setArray
+            self.__displayConnection
         )
 
     def videoLabel(self) -> NDArrayLabel:
         """Label to display video image."""
         return self._videoLabel
+
+
+class NDArrayVideoSeekerWidget(NDArrayVideoWidget):
+    """
+    Widget to display and seek video from numpy arrays.
+
+    Video position can be seek by controlling :meth:`videoSlider`.
+
+    To display video stream, construct a video pipeline which produces
+    numpy arrays and feed them to :meth:`arrayProcessor`.
+
+    Examples
+    ========
+
+    In this example, video pipeline of ``mediaPlayer -> videoSink ->
+    frame2Arr -> arrayProcessor`` is established to play video file.
+    ``mediaPlayer`` is set as :attr:`videoSeeker` to control video
+    position as well.
+
+    >>> from PySide6.QtCore import QUrl
+    >>> from PySide6.QtWidgets import QApplication
+    >>> from PySide6.QtMultimedia import QMediaPlayer, QVideoSink
+    >>> import sys
+    >>> from cv2PySide6 import (get_data_path, NDArrayVideoSeekerWidget,
+    ...     FrameToArrayConverter)
+    >>> vidpath = get_data_path("hello.mp4")
+    >>> def runGUI():
+    ...     app = QApplication(sys.argv)
+    ...     w = NDArrayVideoSeekerWidget()
+    ...     mediaPlayer = QMediaPlayer(w)
+    ...     videoSink = QVideoSink(w)
+    ...     frame2Arr = FrameToArrayConverter(w)
+    ...     mediaPlayer.setVideoSink(videoSink)
+    ...     videoSink.videoFrameChanged.connect(frame2Arr.setVideoFrame)
+    ...     frame2Arr.arrayChanged.connect(w.arrayProcessor().setArray)
+    ...     w.setVideoSeeker(mediaPlayer)
+    ...     mediaPlayer.setSource(QUrl.fromLocalFile(vidpath))
+    ...     w.show()
+    ...     mediaPlayer.play()
+    ...     app.exec()
+    ...     app.quit()
+    >>> runGUI() # doctest: +SKIP
+    """
+    def __init__(self, parent=None):
+        self._videoSeeker = QMediaPlayer()
+        self._videoSlider = ClickableSlider()
+        super().__init__(parent)
+
+        self.connectVideoSeeker()
+
+    def initUI(self):
+        super().initUI()
+        self.videoSlider().setOrientation(Qt.Horizontal)
+        self.layout().addWidget(self.videoSlider())
+
+    def videoSeeker(self) -> VideoSeekerProtocol:
+        """
+        Worker to accept video seeking signal from :meth:`videoSlider`.
+        """
+        return self._videoSeeker
+
+    def setVideoSeeker(self, seeker: VideoSeekerProtocol):
+        """Change :meth:`videoSeeker` and update signal connections."""
+        self.disconnectVideoSeeker()
+        self._videoSeeker = seeker
+        self.connectVideoSeeker()
+
+    def connectVideoSeeker(self):
+        """Connect signals to and slots from :meth:`videoSeeker`."""
+        self.__sliderValueConnection = self.videoSlider().valueChanged.connect(
+            self.onSliderValueChange
+        )
+        self.__positionConnection = self.videoSeeker().positionChanged.connect(
+            self.onMediaPositionChange
+        )
+        self.__durationConnection = self.videoSeeker().durationChanged.connect(
+            self.onMediaDurationChange
+        )
+
+    def disconnectVideoSeeker(self):
+        """Disconnect signals to and slots from :meth:`videoSeeker`."""
+        self.videoSlider().valueChanged.disconnect(
+            self.__sliderValueConnection
+        )
+        self.videoSeeker().positionChanged.disconnect(
+            self.__positionConnection
+        )
+        self.videoSeeker().durationChanged.disconnect(
+            self.__durationConnection
+        )
+
+    def videoSlider(self) -> ClickableSlider:
+        """
+        Slider to control :meth:`videoSeeker`.
+        """
+        return self._videoSlider
+
+    @Slot(int)
+    def onSliderValueChange(self, position: int):
+        """Set the position of media player."""
+        self.videoSeeker().setPosition(position)
+
+    @Slot(int)
+    def onMediaPositionChange(self, position: int):
+        """Change the position of video position slider button."""
+        self.videoSlider().setValue(position)
+
+    @Slot(int)
+    def onMediaDurationChange(self, duration: int):
+        """Change the range of video position slider."""
+        self.videoSlider().setRange(0, duration)
 
 
 class NDArrayVideoPlayerWidget(NDArrayVideoWidget):

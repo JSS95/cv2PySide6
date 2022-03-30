@@ -72,9 +72,9 @@ class CannyVideoPlayerWidget(NDArrayVideoPlayerWidget):
 
     @Slot(bool)
     def onCannyButtonToggle(self, state: bool):
-        self.arrayProcessor().setCannyMode(state)
+        self.arrayProcessor().setCannyMode(state) # type: ignore
         if self.mediaPlayer().playbackState() != QMediaPlayer.PlayingState:
-            self.arrayProcessor().refreshCurrentArray()
+            self.arrayProcessor().refreshCurrentArray() # type: ignore
 
 
 if __name__ == "__main__":
