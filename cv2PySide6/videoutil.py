@@ -10,6 +10,7 @@ from PySide6.QtGui import QMouseEvent, QImage
 from PySide6.QtWidgets import QSlider, QStyleOptionSlider, QStyle
 from PySide6.QtMultimedia import QVideoFrame
 from qimage2ndarray import rgb_view # type: ignore
+import queue
 from typing import Union
 
 
@@ -17,6 +18,8 @@ __all__ = [
     'ArrayProcessor',
     'FrameToArrayConverter',
     'ClickableSlider',
+    'CV2VideoReader',
+    'CV2VideoRetriever',
     'CV2VideoPlayer',
 ]
 
@@ -128,28 +131,28 @@ class ClickableSlider(QSlider):
                                               opt.upsideDown)
 
 
-class CV2VideoPlayer(QThread):
+class CV2VideoReader(QThread):
     """
-    Thread object to grab frame from local video file using
-    ``cv2.VideoCapture``. This class mimics ``QMediaPlayer``.
-
-    Passing video path to :meth:`setSource` sets :meth:`videoCapture`.
-    It emits the path to :attr:`sourceChanged` and total number of
-    frames to :attr:`durationChanged`.
-
-    :meth:`setPosition` sets the current frame position of
-    :meth:`videoCapture`.
+    Thread to read frames from video file with ``cv2.VideoCapture``.
     """
-    sourceChanged = Signal(str)
     durationChanged = Signal(int)
+    fpsChanged = Signal(float)
     positionChanged = Signal(int)
 
     def __init__(self, parent=None):
         super().__init__(parent)
         self._videoCapture = None
+        self._frameBuffer = queue.Queue()
 
     def videoCapture(self) -> Union[cv2.VideoCapture, None]:
         return self._videoCapture
+
+    def frameBuffer(self) -> queue.Queue:
+        """Queue where toe frame array are stored."""
+        return self._frameBuffer
+
+    def setFrameBuffer(self, buffer: queue.Queue):
+        self._frameBuffer = buffer
 
     def duration(self) -> int:
         """Total number of frames in :meth:`videoCapture`."""
@@ -158,6 +161,15 @@ class CV2VideoPlayer(QThread):
             ret = 0
         else:
             ret = cap.get(cv2.CAP_PROP_FRAME_COUNT)
+        return ret
+
+    def fps(self) -> float:
+        """FPS of :meth:`videoCapture`."""
+        cap = self.videoCapture()
+        if cap is None:
+            ret = float(0)
+        else:
+            ret = cap.get(cv2.CAP_PROP_FPS)
         return ret
 
     def position(self) -> int:
@@ -171,16 +183,43 @@ class CV2VideoPlayer(QThread):
 
     def setSource(self, path: str):
         """Update :meth:`videoCapture` with *path*."""
+        old_cap = self.videoCapture()
+        if old_cap is not None:
+            old_cap.release()
         self._videoCapture = cv2.VideoCapture(path)
-        self.sourceChanged.emit(path)
         self.durationChanged.emit(self.duration())
+        self.fpsChanged.emit(self.fps())
         self.positionChanged.emit(0)
 
     def setPosition(self, pos: int):
-        """Self *pos* as current frame of :meth:`videoCapture`."""
+        """Set current frame position to *pos*."""
         cap = self.videoCapture()
         if cap is not None:
             currentpos = cap.get(cv2.CAP_PROP_POS_FRAMES)
             cap.set(cv2.CAP_PROP_POS_FRAMES, pos)
             if currentpos != pos:
                 self.positionChanged.emit(pos)
+
+
+class CV2VideoRetriever(QThread):
+    """
+    Thread to emit frames from frame buffer.
+    """
+    pass
+
+
+class CV2VideoPlayer(QObject):
+    """
+    Object to produce video stream with ``cv2.VideoCapture``.
+    """
+
+    def __init__(self, parent=None):
+        super().__init__(parent)
+        self._videoReader = CV2VideoReader(self)
+        self._videoRetriever = CV2VideoRetriever(self)
+
+    def videoReader(self) -> CV2VideoReader:
+        return self._videoReader
+
+    def videoRetriever(self) -> CV2VideoRetriever:
+        return self._videoRetriever
