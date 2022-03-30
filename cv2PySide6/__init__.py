@@ -1,7 +1,8 @@
 from .version import __version__ # noqa
 
 from .labels import ScalableQLabel, NDArrayLabel
-from .videoutil import FrameToArrayConverter, ArrayProcessor, ClickableSlider
+from .videoutil import (ArrayProcessor, FrameToArrayConverter, ClickableSlider,
+    CV2VideoPlayer)
 from .videowidgets import (NDArrayVideoWidget, NDArrayVideoSeekerWidget,
     NDArrayVideoPlayerWidget)
 from .util import get_data_path
@@ -11,9 +12,10 @@ __all__ = [
     'ScalableQLabel',
     'NDArrayLabel',
 
-    'FrameToArrayConverter',
     'ArrayProcessor',
+    'FrameToArrayConverter',
     'ClickableSlider',
+    'CV2VideoPlayer',
 
     'NDArrayVideoWidget',
     'NDArrayVideoSeekerWidget',
