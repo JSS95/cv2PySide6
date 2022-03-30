@@ -118,8 +118,10 @@ class NDArrayVideoSeekerWidget(NDArrayVideoWidget):
     Examples
     ========
 
-    In this example, ``QMediaPlayer`` which provides video stream is set
-    as :attr:`videoSeeker` to control video position as well.
+    In this example, video pipeline of ``mediaPlayer -> videoSink ->
+    frame2Arr -> arrayProcessor`` is established to play video file.
+    ``mediaPlayer`` is set as :attr:`videoSeeker` to control video
+    position as well.
 
     >>> from PySide6.QtCore import QUrl
     >>> from PySide6.QtWidgets import QApplication
@@ -137,8 +139,8 @@ class NDArrayVideoSeekerWidget(NDArrayVideoWidget):
     ...     mediaPlayer.setVideoSink(videoSink)
     ...     videoSink.videoFrameChanged.connect(frame2Arr.setVideoFrame)
     ...     frame2Arr.arrayChanged.connect(w.arrayProcessor().setArray)
-    ...     mediaPlayer.setSource(QUrl.fromLocalFile(vidpath))
     ...     w.setVideoSeeker(mediaPlayer)
+    ...     mediaPlayer.setSource(QUrl.fromLocalFile(vidpath))
     ...     w.show()
     ...     mediaPlayer.play()
     ...     app.exec()
