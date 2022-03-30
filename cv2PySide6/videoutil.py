@@ -200,6 +200,16 @@ class CV2VideoReader(QThread):
             if currentpos != pos:
                 self.positionChanged.emit(pos)
 
+    def run(self):
+        while True:
+            if self.videoCapture() is None:
+                continue
+            if self.frameBuffer().full():
+                continue
+            ok, img = self.videoCapture().read()
+            if ok:
+                self.frameBuffer().put_nowait(img)
+
 
 class CV2VideoRetriever(QThread):
     """
