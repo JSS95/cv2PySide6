@@ -3,6 +3,8 @@ Widgets to play video stream.
 """
 
 import cv2 # type: ignore
+import numpy as np
+import numpy.typing as NDArray
 from PySide6.QtCore import Qt, Slot, QUrl
 from PySide6.QtGui import QCloseEvent
 from PySide6.QtWidgets import (QWidget, QVBoxLayout, QHBoxLayout, QStyle,
@@ -10,7 +12,8 @@ from PySide6.QtWidgets import (QWidget, QVBoxLayout, QHBoxLayout, QStyle,
 from PySide6.QtMultimedia import QMediaPlayer, QVideoSink
 
 from .labels import NDArrayLabel
-from .videoutil import ClickableSlider, FrameToArrayConverter, ArrayProcessor
+from .videoutil import (ClickableSlider, FrameToArrayConverter, ArrayProcessor,
+    NDArrayVideoPlayer)
 from .typing import (ArrayProcessorProtocol, VideoSeekControllerProtocol,
     VideoPlayControllerProtocol)
 
@@ -37,23 +40,15 @@ class NDArrayVideoWidget(QWidget):
 
     >>> from PySide6.QtCore import QUrl
     >>> from PySide6.QtWidgets import QApplication
-    >>> from PySide6.QtMultimedia import QMediaPlayer, QVideoSink
     >>> import sys
-    >>> from cv2PySide6 import (get_data_path, NDArrayVideoWidget,
-    ...     FrameToArrayConverter)
+    >>> from cv2PySide6 import get_data_path, NDArrayVideoWidget
     >>> vidpath = get_data_path('hello.mp4')
     >>> def runGUI():
     ...     app = QApplication(sys.argv)
     ...     w = NDArrayVideoWidget()
-    ...     mediaPlayer = QMediaPlayer(w)
-    ...     videoSink = QVideoSink(w)
-    ...     frame2Arr = FrameToArrayConverter(w)
-    ...     mediaPlayer.setVideoSink(videoSink)
-    ...     videoSink.videoFrameChanged.connect(frame2Arr.setVideoFrame)
-    ...     frame2Arr.arrayChanged.connect(w.arrayProcessor().setArray)
-    ...     mediaPlayer.setSource(QUrl.fromLocalFile(vidpath))
+    ...     w.videoPlayer().setSource(QUrl.fromLocalFile(vidpath))
     ...     w.show()
-    ...     mediaPlayer.play()
+    ...     w.videoPlayer().play()
     ...     app.exec()
     ...     app.quit()
     >>> runGUI() # doctest: +SKIP
@@ -61,9 +56,11 @@ class NDArrayVideoWidget(QWidget):
     def __init__(self, parent=None):
         super().__init__(parent)
 
+        self._videoPlayer = NDArrayVideoPlayer()
         self._arrayProcessor = ArrayProcessor()
         self._videoLabel = NDArrayLabel()
 
+        self.connectVideoPlayer()
         self.connectArrayProcessor()
         self.videoLabel().setAlignment(Qt.AlignCenter)
 
@@ -73,6 +70,24 @@ class NDArrayVideoWidget(QWidget):
         layout = QVBoxLayout()
         layout.addWidget(self.videoLabel())
         self.setLayout(layout)
+
+    def videoPlayer(self) -> NDArrayVideoPlayer:
+        return self._videoPlayer
+
+    def setVideoPlayer(self, player: NDArrayVideoPlayer):
+        self.disconnectVideoPlayer()
+        self._videoPlayer = player
+        self.connectVideoPlayer()
+
+    def connectVideoPlayer(self):
+        self.__processConnection = self.videoPlayer().arrayChanged.connect(
+            self.onArrayPassedFromPlayer
+        )
+
+    def disconnectVideoPlayer(self):
+        self.videoPlayer().arrayChanged.disconnect(
+            self.__processConnection
+        )
 
     def arrayProcessor(self) -> ArrayProcessorProtocol:
         """Process the array and provide to :meth:`videoLabel`."""
@@ -105,6 +120,10 @@ class NDArrayVideoWidget(QWidget):
     def videoLabel(self) -> NDArrayLabel:
         """Label to display video image."""
         return self._videoLabel
+
+    @Slot(np.ndarray)
+    def onArrayPassedFromPlayer(self, array: NDArray):
+        self.arrayProcessor().setArray(array)
 
 
 class NDArrayVideoSeekerWidget(NDArrayVideoWidget):
