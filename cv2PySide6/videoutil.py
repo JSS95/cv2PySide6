@@ -12,10 +12,30 @@ from qimage2ndarray import rgb_view # type: ignore
 
 
 __all__ = [
-    'FrameToArrayConverter',
     'ArrayProcessor',
+    'FrameToArrayConverter',
     'ClickableSlider',
 ]
+
+
+class ArrayProcessor(QObject):
+    """
+    Video pipeline object to process numpy array and emit to
+    :attr:`arrayChanged`.
+    """
+    arrayChanged = Signal(np.ndarray)
+
+    @Slot(np.ndarray)
+    def setArray(self, array: NDArray):
+        """
+        Process *array* with :meth:`processArray` and emit to
+        :attr:`arrayChanged`.
+        """
+        self.arrayChanged.emit(self.processArray(array))
+
+    def processArray(self, array: NDArray):
+        """Process and return *array*."""
+        return array
 
 
 class FrameToArrayConverter(QObject):
@@ -64,26 +84,6 @@ class FrameToArrayConverter(QObject):
             array = rgb_view(qimg)
         else:
             array = np.empty((0, 0, 0))
-        return array
-
-
-class ArrayProcessor(QObject):
-    """
-    Video pipeline object to process numpy array and emit to
-    :attr:`arrayChanged`.
-    """
-    arrayChanged = Signal(np.ndarray)
-
-    @Slot(np.ndarray)
-    def setArray(self, array: NDArray):
-        """
-        Process *array* with :meth:`processArray` and emit to
-        :attr:`arrayChanged`.
-        """
-        self.arrayChanged.emit(self.processArray(array))
-
-    def processArray(self, array: NDArray):
-        """Process and return *array*."""
         return array
 
 
