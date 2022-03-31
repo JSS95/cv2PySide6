@@ -3,7 +3,7 @@ Widgets to play video stream.
 """
 
 import cv2 # type: ignore
-from PySide6.QtCore import Qt,Slot, QUrl
+from PySide6.QtCore import Qt, Slot, QUrl
 from PySide6.QtGui import QCloseEvent
 from PySide6.QtWidgets import (QWidget, QVBoxLayout, QHBoxLayout, QStyle,
     QPushButton)

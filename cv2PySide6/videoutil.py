@@ -7,7 +7,7 @@ from numpy.typing import NDArray
 from PySide6.QtCore import Qt, QPointF, QObject, Signal, Slot
 from PySide6.QtGui import QMouseEvent, QImage
 from PySide6.QtWidgets import QSlider, QStyleOptionSlider, QStyle
-from PySide6.QtMultimedia import QVideoFrame
+from PySide6.QtMultimedia import QVideoFrame, QMediaPlayer, QVideoSink
 from qimage2ndarray import rgb_view # type: ignore
 
 
@@ -15,6 +15,7 @@ __all__ = [
     'ArrayProcessor',
     'FrameToArrayConverter',
     'ClickableSlider',
+    'NDArrayVideoPlayer',
 ]
 
 
@@ -123,3 +124,24 @@ class ClickableSlider(QSlider):
                                               int(p - sliderMin),
                                               sliderMax - sliderMin,
                                               opt.upsideDown)
+
+
+class NDArrayVideoPlayer(QMediaPlayer):
+    """
+    Video player which emits frames as numpy arrays to
+    :attr:`arrayChanged` signal.
+    """
+    arrayChanged = Signal(np.ndarray)
+
+    def __init__(self, parent=None):
+        super().__init__(parent)
+        self._frame2Arr = FrameToArrayConverter(self)
+
+        self.setVideoSink(QVideoSink(self))
+        self.videoSink().videoFrameChanged.connect(
+            self.frameToArrayConverter().setVideoFrame
+        )
+        self.frameToArrayConverter().arrayChanged.connect(self.arrayChanged)
+
+    def frameToArrayConverter(self) -> FrameToArrayConverter:
+        return self._frame2Arr
