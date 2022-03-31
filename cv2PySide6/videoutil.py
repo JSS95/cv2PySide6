@@ -289,6 +289,8 @@ class CV2VideoPlayer(QObject):
     ...     player = CV2VideoPlayer(app)
     ...     player.setSource(get_data_path('hello.mp4'))
     ...     player.play() # doctest: +SKIP
+    ...     app.exec()
+    ...     app.quit()
     >>> runPlayer() # doctest: +SKIP
     """
     PlaybackState = QMediaPlayer.PlaybackState
