@@ -40,7 +40,7 @@ class NDArrayVideoWidget(QWidget):
     >>> import sys
     >>> from cv2PySide6 import (get_data_path, NDArrayVideoWidget,
     ...     FrameToArrayConverter)
-    >>> vidpath = get_data_path("hello.mp4")
+    >>> vidpath = get_data_path('hello.mp4')
     >>> def runGUI():
     ...     app = QApplication(sys.argv)
     ...     w = NDArrayVideoWidget()
@@ -129,7 +129,7 @@ class NDArrayVideoSeekerWidget(NDArrayVideoWidget):
     >>> import sys
     >>> from cv2PySide6 import (get_data_path, NDArrayVideoSeekerWidget,
     ...     FrameToArrayConverter)
-    >>> vidpath = get_data_path("hello.mp4")
+    >>> vidpath = get_data_path('hello.mp4')
     >>> def runGUI():
     ...     app = QApplication(sys.argv)
     ...     w = NDArrayVideoSeekerWidget()
@@ -231,7 +231,7 @@ class NDArrayVideoPlayerWidget(NDArrayVideoWidget):
     >>> from PySide6.QtWidgets import QApplication
     >>> import sys
     >>> from cv2PySide6 import get_data_path, NDArrayVideoPlayerWidget
-    >>> vidpath = get_data_path("hello.mp4")
+    >>> vidpath = get_data_path('hello.mp4')
     >>> def runGUI():
     ...     app = QApplication(sys.argv)
     ...     player = NDArrayVideoPlayerWidget()

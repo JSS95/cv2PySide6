@@ -5,10 +5,10 @@ Utility objects for video widgets.
 import cv2 # type: ignore
 import numpy as np
 from numpy.typing import NDArray
-from PySide6.QtCore import Qt, QPointF, QObject, Signal, Slot, QThread
+from PySide6.QtCore import Qt, QPointF, QObject, Signal, Slot, QThread, QTimer
 from PySide6.QtGui import QMouseEvent, QImage
 from PySide6.QtWidgets import QSlider, QStyleOptionSlider, QStyle
-from PySide6.QtMultimedia import QVideoFrame
+from PySide6.QtMultimedia import QVideoFrame, QMediaPlayer
 from qimage2ndarray import rgb_view # type: ignore
 import queue
 from typing import Union
@@ -136,7 +136,6 @@ class CV2VideoReader(QThread):
     Thread to read frames from video file with ``cv2.VideoCapture``.
     """
     durationChanged = Signal(int)
-    fpsChanged = Signal(float)
     positionChanged = Signal(int)
 
     def __init__(self, parent=None):
@@ -148,7 +147,7 @@ class CV2VideoReader(QThread):
         return self._videoCapture
 
     def frameBuffer(self) -> queue.Queue:
-        """Queue where toe frame array are stored."""
+        """Queue where the frame array are stored."""
         return self._frameBuffer
 
     def setFrameBuffer(self, buffer: queue.Queue):
@@ -176,9 +175,10 @@ class CV2VideoReader(QThread):
         """Current frame number of :meth:`videoCapture`."""
         cap = self.videoCapture()
         if cap is None:
-            ret = 0
+            pos = 0
         else:
-            ret = cap.get(cv2.CAP_PROP_POS_FRAMES)
+            pos = cap.get(cv2.CAP_PROP_POS_FRAMES)
+        ret = int(pos - self.frameBuffer().qsize())
         return ret
 
     def setSource(self, path: str):
@@ -188,7 +188,6 @@ class CV2VideoReader(QThread):
             old_cap.release()
         self._videoCapture = cv2.VideoCapture(path)
         self.durationChanged.emit(self.duration())
-        self.fpsChanged.emit(self.fps())
         self.positionChanged.emit(0)
 
     def setPosition(self, pos: int):
@@ -196,40 +195,182 @@ class CV2VideoReader(QThread):
         cap = self.videoCapture()
         if cap is not None:
             currentpos = cap.get(cv2.CAP_PROP_POS_FRAMES)
-            cap.set(cv2.CAP_PROP_POS_FRAMES, pos)
             if currentpos != pos:
+                with self.frameBuffer().mutex:
+                    self.frameBuffer().queue.clear()
+                cap.set(cv2.CAP_PROP_POS_FRAMES, pos)
                 self.positionChanged.emit(pos)
 
     def run(self):
-        while True:
+        self._alive = True
+        while self._alive:
             if self.videoCapture() is None:
-                continue
-            if self.frameBuffer().full():
                 continue
             ok, img = self.videoCapture().read()
             if ok:
-                self.frameBuffer().put_nowait(img)
+                while self._alive:
+                    try:
+                        self.frameBuffer().put_nowait(img)
+                    except queue.Full:
+                        pass
+
+    def pause(self):
+        self._alive = False
+        self.wait()
+
+    def quit(self):
+        self.pause()
+        super().quit()
 
 
 class CV2VideoRetriever(QThread):
     """
     Thread to emit frames from frame buffer.
     """
-    pass
+    arrayChanged = Signal(np.ndarray)
+
+    def __init__(self, parent=None):
+        super().__init__(parent)
+        self._frameBuffer = queue.Queue()
+        self._count = 0
+
+    def frameBuffer(self) -> queue.Queue:
+        """Queue where the frame array are retrieved from."""
+        return self._frameBuffer
+
+    def count(self) -> int:
+        return self._count
+
+    def setFrameBuffer(self, buffer: queue.Queue):
+        self._frameBuffer = buffer
+
+    def resetCount(self):
+        self._count = 0
+
+    def increaseCount(self):
+        self._count += 1
+
+    def decreaseCount(self):
+        self._count -= 1
+
+    def run(self):
+        self._alive = True
+        while self._alive:
+            if self.count() <= 0:
+                continue
+            try:
+                frame = self.frameBuffer().get_nowait()
+                self.decreaseCount()
+                self.arrayChanged.emit(frame)
+            except queue.Empty:
+                continue
+
+    def pause(self):
+        self._alive = False
+        self.wait()
+
+    def quit(self):
+        self.pause()
+        super().quit()
 
 
 class CV2VideoPlayer(QObject):
     """
     Object to produce video stream with ``cv2.VideoCapture``.
+
+    Examples
+    ========
+
+    >>> from PySide6.QtWidgets import QApplication
+    >>> import sys
+    >>> from cv2PySide6 import CV2VideoPlayer, get_data_path
+    >>> def runPlayer():
+    ...     app = QApplication(sys.argv)
+    ...     player = CV2VideoPlayer(app)
+    ...     player.setSource(get_data_path('hello.mp4'))
+    ...     player.play() # doctest: +SKIP
+    >>> runPlayer() # doctest: +SKIP
     """
+    PlaybackState = QMediaPlayer.PlaybackState
+    StoppedState = QMediaPlayer.StoppedState
+    PlayingState = QMediaPlayer.PlayingState
+    PausedState = QMediaPlayer.PausedState
+
+    arrayChanged = Signal(np.ndarray)
+    sourceChanged = Signal(str)
+    durationChanged = Signal(int)
+    positionChanged = Signal(int)
+    playbackStateChanged = Signal(PlaybackState)
 
     def __init__(self, parent=None):
         super().__init__(parent)
         self._videoReader = CV2VideoReader(self)
         self._videoRetriever = CV2VideoRetriever(self)
+        self._frameBuffer = queue.Queue(10)
+        self._playbackState = self.StoppedState
+        self.__timer = QTimer(self)
+
+        self.videoReader().setFrameBuffer(self.frameBuffer())
+        self.videoRetriever().setFrameBuffer(self.frameBuffer())
+        self.videoReader().durationChanged.connect(self.durationChanged)
+        self.videoReader().positionChanged.connect(self.positionChanged)
+        self.videoRetriever().arrayChanged.connect(self.arrayChanged)
+        self.__timer.timeout.connect(self.videoRetriever().increaseCount())
 
     def videoReader(self) -> CV2VideoReader:
         return self._videoReader
 
     def videoRetriever(self) -> CV2VideoRetriever:
         return self._videoRetriever
+
+    def frameBuffer(self) -> queue.Queue:
+        return self._frameBuffer
+
+    def playbackState(self) -> PlaybackState:
+        return self._playbackState
+
+    def setFrameBuffer(self, buffer: queue.Queue):
+        self._frameBuffer = buffer
+        self.videoReader().setFrameBuffer(self.frameBuffer())
+        self.videoRetriever().setFrameBuffer(self.frameBuffer())
+
+    @Slot()
+    def play(self):
+        self.videoReader().start()
+        self.videoRetriever().start()
+        fps = self.videoReader().fps()
+        if fps != 0:
+            interval = int(1000/fps)
+            self.__timer.setInterval(interval)
+            self.__timer.start()
+        self._playbackState = self.PlayingState
+        self.playbackStateChanged.emit(self.playbackState())
+
+    @Slot()
+    def pause(self):
+        self.__timer.stop()
+        self.videoReader().pause()
+        self.videoRetriever().pause()
+        self.videoRetriever().resetCount()
+        self._playbackState = self.PausedState
+        self.playbackStateChanged.emit(self.playbackState())
+
+    @Slot()
+    def stop(self):
+        self.__timer.stop()
+        self.videoReader().pause()
+        self.videoRetriever().pause()
+        self.videoReader().setPosition(0)
+        self.videoRetriever().resetCount()
+        self._playbackState = self.StoppedState
+        self.playbackStateChanged.emit(self.playbackState())
+
+    @Slot(str)
+    def setSource(self, source: str):
+        self.stop()
+        self.videoReader().setSource(source)
+        self.sourceChanged.emit(source)
+
+    @Slot(int)
+    def setPosition(self, pos: int):
+        self.videoReader().setPosition(pos)
