@@ -133,10 +133,15 @@ class ClickableSlider(QSlider):
 
 class CV2VideoReader(QThread):
     """
-    Thread to read frames from video file with ``cv2.VideoCapture``.
+    Thread to produce frames from video file with ``cv2.VideoCapture``.
+
+    Frames from :meth:`videoCapture` are stored to :meth:`frameBuffer`
+    so that consumer thread can get them.
+
     """
     durationChanged = Signal(int)
     positionChanged = Signal(int)
+    videoReadFinished = Signal()
 
     def __init__(self, parent=None):
         super().__init__(parent)
@@ -147,7 +152,6 @@ class CV2VideoReader(QThread):
         return self._videoCapture
 
     def frameBuffer(self) -> queue.Queue:
-        """Queue where the frame array are stored."""
         return self._frameBuffer
 
     def setFrameBuffer(self, buffer: queue.Queue):
@@ -211,6 +215,10 @@ class CV2VideoReader(QThread):
                 while self._alive:
                     if not self.frameBuffer().full():
                         self.frameBuffer().put_nowait(img)
+                        break
+            else:
+                self._alive = False
+        self.videoReadFinished.emit()
 
     def pause(self):
         self._alive = False
@@ -223,8 +231,13 @@ class CV2VideoReader(QThread):
 
 class CV2VideoRetriever(QThread):
     """
-    Thread to emit frames from frame buffer.
+    Consumer thread to emit frames.
+
+    Frames are taken from :meth:`frameBuffer` and emitted by
+    :attr:`arrayChanged`.
+
     """
+    playbackFinished = Signal()
     arrayChanged = Signal(np.ndarray)
 
     def __init__(self, parent=None):
@@ -232,6 +245,7 @@ class CV2VideoRetriever(QThread):
         self._frameBuffer = queue.Queue()
         self._count = 0
         self._timer = QTimer(self)
+        self._noMoreFrameComing = False
 
         self.timer().timeout.connect(self.increaseCount)
 
@@ -275,6 +289,13 @@ class CV2VideoRetriever(QThread):
                 frame = self.frameBuffer().get_nowait()
                 self.decreaseCount()
                 self.arrayChanged.emit(frame)
+            elif self._noMoreFrameComing:
+                break
+        self.playbackFinished.emit()
+
+    @Slot()
+    def preparePlaybackFinish(self):
+        self._noMoreFrameComing = True
 
     def pause(self):
         self._alive = False
@@ -289,7 +310,8 @@ class CV2VideoRetriever(QThread):
 
 class CV2VideoPlayer(QObject):
     """
-    Object to produce video stream with ``cv2.VideoCapture``.
+    Object to produce video stream with ``cv2.VideoCapture``. This class
+    emulates ``QMediaPlayer``.
 
     Examples
     ========
@@ -328,6 +350,10 @@ class CV2VideoPlayer(QObject):
         self.videoRetriever().setFrameBuffer(self.frameBuffer())
         self.videoReader().durationChanged.connect(self.durationChanged)
         self.videoReader().positionChanged.connect(self.positionChanged)
+        self.videoReader().videoReadFinished.connect(
+            self.videoRetriever().preparePlaybackFinish
+        )
+        self.videoRetriever().playbackFinished.connect(self.stop)
         self.videoRetriever().arrayChanged.connect(self.arrayChanged)
 
     def videoReader(self) -> CV2VideoReader:
