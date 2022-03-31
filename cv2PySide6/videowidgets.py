@@ -14,8 +14,7 @@ from PySide6.QtMultimedia import QMediaPlayer, QVideoSink
 from .labels import NDArrayLabel
 from .videoutil import (ClickableSlider, FrameToArrayConverter, ArrayProcessor,
     NDArrayVideoPlayer)
-from .typing import (ArrayProcessorProtocol, VideoSeekControllerProtocol,
-    VideoPlayControllerProtocol)
+from .typing import ArrayProcessorProtocol, VideoPlayControllerProtocol
 
 
 __all__ = [
@@ -28,9 +27,6 @@ __all__ = [
 class NDArrayVideoWidget(QWidget):
     """
     Widget to display video from numpy arrays.
-
-    To display video stream, construct a video pipeline which produces
-    numpy arrays and feed them to :meth:`arrayProcessor`.
 
     Examples
     ========
@@ -132,106 +128,63 @@ class NDArrayVideoSeekerWidget(NDArrayVideoWidget):
 
     Video position can be seek by controlling :meth:`videoSlider`.
 
-    To display video stream, construct a video pipeline which produces
-    numpy arrays and feed them to :meth:`arrayProcessor`.
-
     Examples
     ========
 
-    In this example, video pipeline of ``mediaPlayer -> videoSink ->
-    frame2Arr -> arrayProcessor`` is established to play video file.
-    ``mediaPlayer`` is set as :attr:`videoSeekController` to control
-    video position as well.
-
     >>> from PySide6.QtCore import QUrl
     >>> from PySide6.QtWidgets import QApplication
-    >>> from PySide6.QtMultimedia import QMediaPlayer, QVideoSink
     >>> import sys
-    >>> from cv2PySide6 import (get_data_path, NDArrayVideoSeekerWidget,
-    ...     FrameToArrayConverter)
+    >>> from cv2PySide6 import get_data_path, NDArrayVideoSeekerWidget
     >>> vidpath = get_data_path('hello.mp4')
     >>> def runGUI():
     ...     app = QApplication(sys.argv)
     ...     w = NDArrayVideoSeekerWidget()
-    ...     mediaPlayer = QMediaPlayer(w)
-    ...     videoSink = QVideoSink(w)
-    ...     frame2Arr = FrameToArrayConverter(w)
-    ...     mediaPlayer.setVideoSink(videoSink)
-    ...     videoSink.videoFrameChanged.connect(frame2Arr.setVideoFrame)
-    ...     frame2Arr.arrayChanged.connect(w.arrayProcessor().setArray)
-    ...     w.setVideoSeekController(mediaPlayer)
-    ...     mediaPlayer.setSource(QUrl.fromLocalFile(vidpath))
+    ...     w.videoPlayer().setSource(QUrl.fromLocalFile(vidpath))
     ...     w.show()
-    ...     mediaPlayer.play()
+    ...     w.videoPlayer().play()
     ...     app.exec()
     ...     app.quit()
     >>> runGUI() # doctest: +SKIP
     """
     def __init__(self, parent=None):
-        self._videoSeekController = QMediaPlayer()
         self._videoSlider = ClickableSlider()
         super().__init__(parent)
 
-        self.connectVideoSeekController()
+        self.videoSlider().valueChanged.connect(self.onSliderValueChange)
 
     def initUI(self):
         super().initUI()
         self.videoSlider().setOrientation(Qt.Horizontal)
         self.layout().addWidget(self.videoSlider())
 
-    def videoSeekController(self) -> VideoSeekControllerProtocol:
-        """
-        Worker to accept video seeking signal from :meth:`videoSlider`.
-        """
-        return self._videoSeekController
-
-    def setVideoSeekController(self, seeker: VideoSeekControllerProtocol):
-        """
-        Change :meth:`videoSeekController` and update signal connections.
-        """
-        self.disconnectVideoSeekController()
-        self._videoSeekController = seeker
-        self.connectVideoSeekController()
-
-    def connectVideoSeekController(self):
-        """
-        Connect signals to and slots from :meth:`videoSeekController`.
-        """
-        self.__sliderValueConnection = self.videoSlider().valueChanged.connect(
-            self.onSliderValueChange
-        )
-        seekController = self.videoSeekController()
-        self.__positionConnection = seekController.positionChanged.connect(
+    def connectVideoPlayer(self):
+        super().connectVideoPlayer()
+        self.__positionConnection = self.videoPlayer().positionChanged.connect(
             self.onMediaPositionChange
         )
-        self.__durationConnection = seekController.durationChanged.connect(
+        self.__durationConnection = self.videoPlayer().durationChanged.connect(
             self.onMediaDurationChange
         )
 
-    def disconnectVideoSeekController(self):
-        """
-        Disconnect signals to and slots from :meth:`videoSeekController`.
-        """
-        self.videoSlider().valueChanged.disconnect(
-            self.__sliderValueConnection
-        )
-        self.videoSeekController().positionChanged.disconnect(
+    def disconnectVideoPlayer(self):
+        super().disconnectVideoPlayer()
+        self.videoPlayer().positionChanged.disconnect(
             self.__positionConnection
         )
-        self.videoSeekController().durationChanged.disconnect(
-            self.__durationConnection
+        self.videoPlayer().durationChanged.disconnect(
+            self.__durationConnection 
         )
 
     def videoSlider(self) -> ClickableSlider:
         """
-        Slider to control :meth:`videoSeekController`.
+        Slider to control :meth:`videoPlayer`.
         """
         return self._videoSlider
 
     @Slot(int)
     def onSliderValueChange(self, position: int):
         """Set the position of media player."""
-        self.videoSeekController().setPosition(position)
+        self.videoPlayer().setPosition(position)
 
     @Slot(int)
     def onMediaPositionChange(self, position: int):
