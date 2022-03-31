@@ -1,10 +1,11 @@
 from numpy.typing import NDArray
 from PySide6.QtCore import Signal
+from PySide6.QtMultimedia import QMediaPlayer
 from typing import Protocol, Callable, Any
 
 __all__ = [
     'ArrayProcessorProtocol',
-    'VideoSeekerProtocol',
+    'VideoSeekControllerProtocol',
     'VideoPlayerProtocol',
 ]
 
@@ -20,9 +21,9 @@ class ArrayProcessorProtocol(Protocol):
     arrayChanged: Signal
 
 
-class VideoSeekerProtocol(Protocol):
+class VideoSeekControllerProtocol(Protocol):
     """
-    Type annotation for video seeker protocol.
+    Type annotation for video seeking controller protocol.
 
     ``setPosition`` is a ``Slot`` which controls the position
     of video. When video position changes, ``positionChanged`` signal
@@ -31,7 +32,7 @@ class VideoSeekerProtocol(Protocol):
     When total duration of the video changes (i.e. new video is loaded),
     ``durationChanged`` signal emits integer value.
     """
-    setPosition: Callable[['VideoSeekerProtocol', int], Any]
+    setPosition: Callable[['VideoSeekControllerProtocol', int], Any]
     positionChanged: Signal
     durationChanged: Signal
 
@@ -49,3 +50,6 @@ class VideoPlayerProtocol(Protocol):
     pause: Callable[['VideoPlayerProtocol'], Any]
     stop: Callable[['VideoPlayerProtocol'], Any]
     playbackStateChanged: Signal
+    playbackState: Callable[
+        ['VideoPlayerProtocol'], QMediaPlayer.PlaybackState
+    ]

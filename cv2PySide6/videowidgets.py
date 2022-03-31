@@ -11,7 +11,8 @@ from PySide6.QtMultimedia import QMediaPlayer, QVideoSink
 
 from .labels import NDArrayLabel
 from .videoutil import ClickableSlider, FrameToArrayConverter, ArrayProcessor
-from .typing import ArrayProcessorProtocol, VideoSeekerProtocol
+from .typing import (ArrayProcessorProtocol, VideoSeekControllerProtocol,
+    VideoPlayerProtocol)
 
 
 __all__ = [
@@ -120,8 +121,8 @@ class NDArrayVideoSeekerWidget(NDArrayVideoWidget):
 
     In this example, video pipeline of ``mediaPlayer -> videoSink ->
     frame2Arr -> arrayProcessor`` is established to play video file.
-    ``mediaPlayer`` is set as :attr:`videoSeeker` to control video
-    position as well.
+    ``mediaPlayer`` is set as :attr:`videoSeekController` to control
+    video position as well.
 
     >>> from PySide6.QtCore import QUrl
     >>> from PySide6.QtWidgets import QApplication
@@ -139,7 +140,7 @@ class NDArrayVideoSeekerWidget(NDArrayVideoWidget):
     ...     mediaPlayer.setVideoSink(videoSink)
     ...     videoSink.videoFrameChanged.connect(frame2Arr.setVideoFrame)
     ...     frame2Arr.arrayChanged.connect(w.arrayProcessor().setArray)
-    ...     w.setVideoSeeker(mediaPlayer)
+    ...     w.setVideoSeekController(mediaPlayer)
     ...     mediaPlayer.setSource(QUrl.fromLocalFile(vidpath))
     ...     w.show()
     ...     mediaPlayer.play()
@@ -148,63 +149,70 @@ class NDArrayVideoSeekerWidget(NDArrayVideoWidget):
     >>> runGUI() # doctest: +SKIP
     """
     def __init__(self, parent=None):
-        self._videoSeeker = QMediaPlayer()
+        self._videoSeekController = QMediaPlayer()
         self._videoSlider = ClickableSlider()
         super().__init__(parent)
 
-        self.connectVideoSeeker()
+        self.connectVideoSeekController()
 
     def initUI(self):
         super().initUI()
         self.videoSlider().setOrientation(Qt.Horizontal)
         self.layout().addWidget(self.videoSlider())
 
-    def videoSeeker(self) -> VideoSeekerProtocol:
+    def videoSeekController(self) -> VideoSeekControllerProtocol:
         """
         Worker to accept video seeking signal from :meth:`videoSlider`.
         """
-        return self._videoSeeker
+        return self._videoSeekController
 
-    def setVideoSeeker(self, seeker: VideoSeekerProtocol):
-        """Change :meth:`videoSeeker` and update signal connections."""
-        self.disconnectVideoSeeker()
-        self._videoSeeker = seeker
-        self.connectVideoSeeker()
+    def setVideoSeekController(self, seeker: VideoSeekControllerProtocol):
+        """
+        Change :meth:`videoSeekController` and update signal connections.
+        """
+        self.disconnectVideoSeekController()
+        self._videoSeekController = seeker
+        self.connectVideoSeekController()
 
-    def connectVideoSeeker(self):
-        """Connect signals to and slots from :meth:`videoSeeker`."""
+    def connectVideoSeekController(self):
+        """
+        Connect signals to and slots from :meth:`videoSeekController`.
+        """
         self.__sliderValueConnection = self.videoSlider().valueChanged.connect(
             self.onSliderValueChange
         )
-        self.__positionConnection = self.videoSeeker().positionChanged.connect(
+        seekController = self.videoSeekController()
+        self.__positionConnection = seekController.positionChanged.connect(
             self.onMediaPositionChange
         )
-        self.__durationConnection = self.videoSeeker().durationChanged.connect(
+        self.__durationConnection = seekController.durationChanged.connect(
             self.onMediaDurationChange
         )
 
-    def disconnectVideoSeeker(self):
-        """Disconnect signals to and slots from :meth:`videoSeeker`."""
+    def disconnectVideoSeekController(self):
+        """
+        Disconnect signals to and slots from :meth:`videoSeekController`.
+        """
         self.videoSlider().valueChanged.disconnect(
             self.__sliderValueConnection
         )
-        self.videoSeeker().positionChanged.disconnect(
+        self.videoSeekController().positionChanged.disconnect(
             self.__positionConnection
         )
-        self.videoSeeker().durationChanged.disconnect(
+        self.videoSeekController().durationChanged.disconnect(
             self.__durationConnection
         )
 
     def videoSlider(self) -> ClickableSlider:
         """
-        Slider to control :meth:`videoSeeker`.
+        Slider to control :meth:`videoSeekController`.
         """
         return self._videoSlider
 
     @Slot(int)
     def onSliderValueChange(self, position: int):
         """Set the position of media player."""
-        self.videoSeeker().setPosition(position)
+        self.videoSeekController().setPosition(position)
 
     @Slot(int)
     def onMediaPositionChange(self, position: int):
@@ -242,7 +250,8 @@ class NDArrayVideoPlayerWidget(NDArrayVideoWidget):
     >>> runGUI() # doctest: +SKIP
     """
     def __init__(self, parent=None):
-        self._mediaPlayer = QMediaPlayer()
+        self._videoPlayer = QMediaPlayer()
+        self._mediaPlayer = self._videoPlayer
         self._frameToArrayConverter = FrameToArrayConverter()
         self._playButton = QPushButton()
         self._videoSlider = ClickableSlider()
@@ -260,7 +269,7 @@ class NDArrayVideoPlayerWidget(NDArrayVideoWidget):
         self.videoSlider().sliderPressed.connect(self.onSliderPress)
         self.videoSlider().sliderReleased.connect(self.onSliderRelease)
         self.videoSlider().valueChanged.connect(self.onSliderValueChange)
-        self.mediaPlayer().playbackStateChanged.connect(
+        self.videoPlayer().playbackStateChanged.connect(
             self.onPlaybackStateChange
         )
         self.mediaPlayer().sourceChanged.connect(self.onMediaSourceChange)
@@ -279,6 +288,18 @@ class NDArrayVideoPlayerWidget(NDArrayVideoWidget):
         layout.addWidget(self.videoLabel())
         layout.addLayout(control_layout)
         self.setLayout(layout)
+
+    def videoPlayer(self) -> VideoPlayerProtocol:
+        """
+        Worker to accept video playing signal from :meth:`playButton`.
+
+        Note
+        ====
+
+        This object does not necessarily produce video stream, but
+        controls playback state of video producer.
+        """
+        return self._videoPlayer
 
     def mediaPlayer(self) -> QMediaPlayer:
         """
@@ -325,25 +346,25 @@ class NDArrayVideoPlayerWidget(NDArrayVideoWidget):
     @Slot()
     def onPlayButtonClicked(self):
         """Switch play-pause state of media player."""
-        if self.mediaPlayer().playbackState() == QMediaPlayer.PlayingState:
-            self.mediaPlayer().pause()
+        if self.videoPlayer().playbackState() == QMediaPlayer.PlayingState:
+            self.videoPlayer().pause()
         else:
-            self.mediaPlayer().play()
+            self.videoPlayer().play()
 
     @Slot()
     def onSliderPress(self):
         """Pause if the video was playing."""
-        if self.mediaPlayer().playbackState() == QMediaPlayer.PlayingState:
+        if self.videoPlayer().playbackState() == QMediaPlayer.PlayingState:
             self._pausedBySliderPress = True
-            self.mediaPlayer().pause()
+            self.videoPlayer().pause()
 
     @Slot()
     def onSliderRelease(self):
         """Play if the video was paused by :meth:`onSliderPress`."""
-        if self.mediaPlayer().playbackState() == QMediaPlayer.PausedState:
+        if self.videoPlayer().playbackState() == QMediaPlayer.PausedState:
             if self.pausedBySliderPress():
                 self._pausedBySliderPress = False
-                self.mediaPlayer().play()
+                self.videoPlayer().play()
 
     @Slot(int)
     def onSliderValueChange(self, position: int):
