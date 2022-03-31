@@ -6,7 +6,7 @@ from typing import Protocol, Callable, Any
 __all__ = [
     'ArrayProcessorProtocol',
     'VideoSeekControllerProtocol',
-    'VideoPlayerProtocol',
+    'VideoPlayControllerProtocol',
 ]
 
 
@@ -37,19 +37,26 @@ class VideoSeekControllerProtocol(Protocol):
     durationChanged: Signal
 
 
-class VideoPlayerProtocol(Protocol):
+class VideoPlayControllerProtocol(Protocol):
     """
-    Type annotation for video player protocol.
+    Type annotation for video playing controller protocol.
 
     ``play``, ``pause``, and ``stop`` are ``Slot`` to control the
     playback state of video. When playback state changes,
     ``playbackStateChanged`` signal emits new playback state as
     ``QMediaPlayer.PlaybackState`` enums.
+
+    Notes
+    ====
+
+    This protocol does not necessarily produce video stream, but
+    controls playback state of video producer.
+
     """
-    play: Callable[['VideoPlayerProtocol'], Any]
-    pause: Callable[['VideoPlayerProtocol'], Any]
-    stop: Callable[['VideoPlayerProtocol'], Any]
+    play: Callable[['VideoPlayControllerProtocol'], Any]
+    pause: Callable[['VideoPlayControllerProtocol'], Any]
+    stop: Callable[['VideoPlayControllerProtocol'], Any]
     playbackStateChanged: Signal
     playbackState: Callable[
-        ['VideoPlayerProtocol'], QMediaPlayer.PlaybackState
+        ['VideoPlayControllerProtocol'], QMediaPlayer.PlaybackState
     ]

@@ -12,7 +12,7 @@ from PySide6.QtMultimedia import QMediaPlayer, QVideoSink
 from .labels import NDArrayLabel
 from .videoutil import ClickableSlider, FrameToArrayConverter, ArrayProcessor
 from .typing import (ArrayProcessorProtocol, VideoSeekControllerProtocol,
-    VideoPlayerProtocol)
+    VideoPlayControllerProtocol)
 
 
 __all__ = [
@@ -250,8 +250,9 @@ class NDArrayVideoPlayerWidget(NDArrayVideoWidget):
     >>> runGUI() # doctest: +SKIP
     """
     def __init__(self, parent=None):
-        self._videoPlayer = QMediaPlayer()
-        self._mediaPlayer = self._videoPlayer
+        player = QMediaPlayer()
+        self._videoPlayController = player
+        self._mediaPlayer = player
         self._frameToArrayConverter = FrameToArrayConverter()
         self._playButton = QPushButton()
         self._videoSlider = ClickableSlider()
@@ -269,7 +270,7 @@ class NDArrayVideoPlayerWidget(NDArrayVideoWidget):
         self.videoSlider().sliderPressed.connect(self.onSliderPress)
         self.videoSlider().sliderReleased.connect(self.onSliderRelease)
         self.videoSlider().valueChanged.connect(self.onSliderValueChange)
-        self.videoPlayer().playbackStateChanged.connect(
+        self.videoPlayController().playbackStateChanged.connect(
             self.onPlaybackStateChange
         )
         self.mediaPlayer().sourceChanged.connect(self.onMediaSourceChange)
@@ -289,7 +290,7 @@ class NDArrayVideoPlayerWidget(NDArrayVideoWidget):
         layout.addLayout(control_layout)
         self.setLayout(layout)
 
-    def videoPlayer(self) -> VideoPlayerProtocol:
+    def videoPlayController(self) -> VideoPlayControllerProtocol:
         """
         Worker to accept video playing signal from :meth:`playButton`.
 
@@ -299,7 +300,7 @@ class NDArrayVideoPlayerWidget(NDArrayVideoWidget):
         This object does not necessarily produce video stream, but
         controls playback state of video producer.
         """
-        return self._videoPlayer
+        return self._videoPlayController
 
     def mediaPlayer(self) -> QMediaPlayer:
         """
@@ -338,7 +339,7 @@ class NDArrayVideoPlayerWidget(NDArrayVideoWidget):
         """
         Discoonnect signals to and slots from :meth:`arrayProcessor`.
         """
-        super().disconnectArrayProcessors()
+        super().disconnectArrayProcessor()
         self.frameToArrayConverter().arrayChanged.disconnect(
             self.arrayProcessor().setArray
         )
@@ -346,25 +347,28 @@ class NDArrayVideoPlayerWidget(NDArrayVideoWidget):
     @Slot()
     def onPlayButtonClicked(self):
         """Switch play-pause state of media player."""
-        if self.videoPlayer().playbackState() == QMediaPlayer.PlayingState:
-            self.videoPlayer().pause()
+        if (self.videoPlayController().playbackState()
+            == QMediaPlayer.PlayingState):
+            self.videoPlayController().pause()
         else:
-            self.videoPlayer().play()
+            self.videoPlayController().play()
 
     @Slot()
     def onSliderPress(self):
         """Pause if the video was playing."""
-        if self.videoPlayer().playbackState() == QMediaPlayer.PlayingState:
+        if (self.videoPlayController().playbackState()
+            == QMediaPlayer.PlayingState):
             self._pausedBySliderPress = True
-            self.videoPlayer().pause()
+            self.videoPlayController().pause()
 
     @Slot()
     def onSliderRelease(self):
         """Play if the video was paused by :meth:`onSliderPress`."""
-        if self.videoPlayer().playbackState() == QMediaPlayer.PausedState:
+        if (self.videoPlayController().playbackState()
+            == QMediaPlayer.PausedState):
             if self.pausedBySliderPress():
                 self._pausedBySliderPress = False
-                self.videoPlayer().play()
+                self.videoPlayController().play()
 
     @Slot(int)
     def onSliderValueChange(self, position: int):
@@ -412,5 +416,5 @@ class NDArrayVideoPlayerWidget(NDArrayVideoWidget):
 
     def closeEvent(self, event: QCloseEvent):
         """Stop :meth:`mediaPlayer` before closing."""
-        self.mediaPlayer().stop()
+        self.videoPlayController().stop()
         event.accept()
