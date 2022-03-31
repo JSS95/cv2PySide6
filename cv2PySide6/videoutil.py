@@ -133,10 +133,10 @@ class ClickableSlider(QSlider):
 
 class CV2VideoReader(QThread):
     """
-    Thread to produce frames from video file with ``cv2.VideoCapture``.
+    Thread to produce frames from video file using ``cv2.VideoCapture``.
 
     Frames from :meth:`videoCapture` are stored to :meth:`frameBuffer`
-    so that consumer thread can get them.
+    so that consumer can retrieve them.
 
     """
     durationChanged = Signal(int)
@@ -231,10 +231,10 @@ class CV2VideoReader(QThread):
 
 class CV2VideoRetriever(QObject):
     """
-    Consumer thread to emit frames.
+    Consumer object to emit frames.
 
-    Frames are taken from :meth:`frameBuffer` and emitted by
-    :attr:`arrayChanged`.
+    Whenever :meth:`timer` triggers, this object tries to take frame
+    from :meth:`frameBuffer` and emit to :attr:`arrayChanged`.
 
     """
     playbackFinished = Signal()
@@ -266,12 +266,12 @@ class CV2VideoRetriever(QObject):
 
     @Slot()
     def retrieveFrame(self):
-        if not self.frameBuffer().empty():
-            frame = self.frameBuffer().get_nowait()
-            self.arrayChanged.emit(frame)
-        elif self._noMoreFrameComing:
+        if self.frameBuffer().empty() and self._noMoreFrameComing:
             self.pause()
             self.playbackFinished.emit()
+        else:
+            frame = self.frameBuffer().get()
+            self.arrayChanged.emit(frame)
 
     @Slot()
     def preparePlaybackFinish(self):
