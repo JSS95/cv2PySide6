@@ -229,7 +229,7 @@ class CV2VideoReader(QThread):
         super().quit()
 
 
-class CV2VideoRetriever(QThread):
+class CV2VideoRetriever(QObject):
     """
     Consumer thread to emit frames.
 
@@ -243,11 +243,10 @@ class CV2VideoRetriever(QThread):
     def __init__(self, parent=None):
         super().__init__(parent)
         self._frameBuffer = queue.Queue()
-        self._count = 0
         self._timer = QTimer(self)
         self._noMoreFrameComing = False
 
-        self.timer().timeout.connect(self.increaseCount)
+        self.timer().timeout.connect(self.retrieveFrame)
 
     def frameBuffer(self) -> queue.Queue:
         """Queue where the frame array are retrieved from."""
@@ -256,23 +255,8 @@ class CV2VideoRetriever(QThread):
     def timer(self) -> QTimer:
         return self._timer
 
-    def count(self) -> int:
-        return self._count
-
     def setFrameBuffer(self, buffer: queue.Queue):
         self._frameBuffer = buffer
-
-    @Slot()
-    def resetCount(self):
-        self._count = 0
-
-    @Slot()
-    def increaseCount(self):
-        self._count += 1
-
-    @Slot()
-    def decreaseCount(self):
-        self._count -= 1
 
     def startTimer(self, interval: int):
         self.timer().start(interval)
@@ -280,28 +264,21 @@ class CV2VideoRetriever(QThread):
     def stopTimer(self):
         self.timer().stop()
 
-    def run(self):
-        self._alive = True
-        while self._alive:
-            if self.count() <= 0:
-                continue
-            if not self.frameBuffer().empty():
-                frame = self.frameBuffer().get_nowait()
-                self.decreaseCount()
-                self.arrayChanged.emit(frame)
-            elif self._noMoreFrameComing:
-                break
-        self.playbackFinished.emit()
+    @Slot()
+    def retrieveFrame(self):
+        if not self.frameBuffer().empty():
+            frame = self.frameBuffer().get_nowait()
+            self.arrayChanged.emit(frame)
+        elif self._noMoreFrameComing:
+            self.pause()
+            self.playbackFinished.emit()
 
     @Slot()
     def preparePlaybackFinish(self):
         self._noMoreFrameComing = True
 
     def pause(self):
-        self._alive = False
-        self.wait()
         self.stopTimer()
-        self.resetCount()
 
     def quit(self):
         self.pause()
@@ -376,7 +353,6 @@ class CV2VideoPlayer(QObject):
     @Slot()
     def play(self):
         self.videoReader().start()
-        self.videoRetriever().start()
         fps = self.videoReader().fps()
         if fps != 0:
             self.videoRetriever().startTimer(int(1000/fps))
