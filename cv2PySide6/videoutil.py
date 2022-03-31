@@ -137,7 +137,6 @@ class CV2VideoReader(QThread):
     """
     durationChanged = Signal(int)
     positionChanged = Signal(int)
-    fpsChanged = Signal(float)
 
     def __init__(self, parent=None):
         super().__init__(parent)
@@ -188,7 +187,6 @@ class CV2VideoReader(QThread):
         if old_cap is not None:
             old_cap.release()
         self._videoCapture = cv2.VideoCapture(path)
-        self.fpsChanged.emit(self.fps())
         self.durationChanged.emit(self.duration())
         self.positionChanged.emit(0)
 
@@ -232,16 +230,14 @@ class CV2VideoRetriever(QThread):
     def __init__(self, parent=None):
         super().__init__(parent)
         self._frameBuffer = queue.Queue()
-        self._fps = float(0)
         self._count = 0
         self._timer = QTimer(self)
+
+        self.timer().timeout.connect(self.increaseCount)
 
     def frameBuffer(self) -> queue.Queue:
         """Queue where the frame array are retrieved from."""
         return self._frameBuffer
-
-    def fps(self) -> float:
-        return self._fps
 
     def timer(self) -> QTimer:
         return self._timer
@@ -251,10 +247,6 @@ class CV2VideoRetriever(QThread):
 
     def setFrameBuffer(self, buffer: queue.Queue):
         self._frameBuffer = buffer
-
-    @Slot(float)
-    def setFPS(self, fps: float):
-        self._fps = fps
 
     @Slot()
     def resetCount(self):
@@ -267,6 +259,12 @@ class CV2VideoRetriever(QThread):
     @Slot()
     def decreaseCount(self):
         self._count -= 1
+
+    def startTimer(self, interval: int):
+        self.timer().start(interval)
+
+    def stopTimer(self):
+        self.timer().stop()
 
     def run(self):
         self._alive = True
@@ -281,6 +279,7 @@ class CV2VideoRetriever(QThread):
     def pause(self):
         self._alive = False
         self.wait()
+        self.stopTimer()
         self.resetCount()
 
     def quit(self):
@@ -302,7 +301,7 @@ class CV2VideoPlayer(QObject):
     ...     app = QApplication(sys.argv)
     ...     player = CV2VideoPlayer(app)
     ...     player.setSource(get_data_path('hello.mp4'))
-    ...     # player.play() # doctest: +SKIP
+    ...     player.play()
     ...     app.exec()
     ...     app.quit()
     >>> runPlayer() # doctest: +SKIP
@@ -328,7 +327,6 @@ class CV2VideoPlayer(QObject):
         self.videoReader().setFrameBuffer(self.frameBuffer())
         self.videoRetriever().setFrameBuffer(self.frameBuffer())
         self.videoReader().durationChanged.connect(self.durationChanged)
-        self.videoReader().fpsChanged.connect(self.videoRetriever().setFPS)
         self.videoReader().positionChanged.connect(self.positionChanged)
         self.videoRetriever().arrayChanged.connect(self.arrayChanged)
 
@@ -352,7 +350,11 @@ class CV2VideoPlayer(QObject):
     @Slot()
     def play(self):
         self.videoReader().start()
-        # self.videoRetriever().start()
+        self.videoRetriever().start()
+        fps = self.videoReader().fps()
+        if fps != 0:
+            self.videoRetriever().startTimer(int(1000/fps))
+
         self._playbackState = self.PlayingState
         self.playbackStateChanged.emit(self.playbackState())
 
