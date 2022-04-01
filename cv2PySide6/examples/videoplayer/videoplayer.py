@@ -16,7 +16,7 @@ class CannyEdgeDetector(ArrayProcessor):
 
     def __init__(self, parent=None):
         super().__init__(parent)
-        self._currentArray = np.array((0, 0, 0))
+        self._currentArray = np.empty((0, 0, 0))
         self._canny_mode = False
 
     def currentArray(self) -> NDArray:
@@ -39,7 +39,7 @@ class CannyEdgeDetector(ArrayProcessor):
     def processArray(self, array: NDArray) -> NDArray:
         """Perform Canny edge detection."""
         array = super().processArray(array)
-        if self.cannyMode():
+        if array.size > 0 and self.cannyMode():
             gray = cv2.cvtColor(array, cv2.COLOR_RGB2GRAY)
             canny = cv2.Canny(gray, 50, 200)
             ret = cv2.cvtColor(canny, cv2.COLOR_GRAY2RGB)
