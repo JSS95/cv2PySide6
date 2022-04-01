@@ -3,7 +3,7 @@
 import cv2 # type: ignore
 import numpy as np
 from numpy.typing import NDArray
-from PySide6.QtCore import Slot
+from PySide6.QtCore import Slot, QUrl
 from PySide6.QtWidgets import QPushButton
 from PySide6.QtMultimedia import QMediaPlayer
 from cv2PySide6 import ArrayProcessor, NDArrayVideoPlayerWidget
@@ -73,7 +73,7 @@ class CannyVideoPlayerWidget(NDArrayVideoPlayerWidget):
     @Slot(bool)
     def onCannyButtonToggle(self, state: bool):
         self.arrayProcessor().setCannyMode(state) # type: ignore
-        if self.mediaPlayer().playbackState() != QMediaPlayer.PlayingState:
+        if self.videoPlayer().playbackState() != QMediaPlayer.PlayingState:
             self.arrayProcessor().refreshCurrentArray() # type: ignore
 
 
@@ -83,8 +83,9 @@ if __name__ == "__main__":
     from cv2PySide6 import get_data_path
 
     app = QApplication(sys.argv)
-    player = CannyVideoPlayerWidget()
-    player.open(get_data_path("hello.mp4"))
-    player.show()
+    widget = CannyVideoPlayerWidget()
+    url = QUrl.fromLocalFile(get_data_path("hello.mp4"))
+    widget.videoPlayer().setSource(url)
+    widget.show()
     app.exec()
     app.quit()
