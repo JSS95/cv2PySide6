@@ -18,13 +18,12 @@ from .typing import (ArrayProcessorProtocol, NDArrayVideoPlayerProtocol,
 
 
 __all__ = [
-    'NDArrayVideoWidget',
     'NDArrayVideoPlayerWidget',
     'NDArrayCameraWidget',
 ]
 
 
-class NDArrayVideoWidget(QWidget):
+class NDArrayVideoPlayerWidget(QWidget):
     """
     Widget to display numpy arrays from local video file.
 
@@ -34,11 +33,11 @@ class NDArrayVideoWidget(QWidget):
     >>> from PySide6.QtCore import QUrl
     >>> from PySide6.QtWidgets import QApplication
     >>> import sys
-    >>> from cv2PySide6 import get_data_path, NDArrayVideoWidget
+    >>> from cv2PySide6 import get_data_path, NDArrayVideoPlayerWidget
     >>> vidpath = get_data_path('hello.mp4')
     >>> def runGUI():
     ...     app = QApplication(sys.argv)
-    ...     w = NDArrayVideoWidget()
+    ...     w = NDArrayVideoPlayerWidget()
     ...     w.videoPlayer().setSource(QUrl.fromLocalFile(vidpath))
     ...     w.show()
     ...     w.videoPlayer().play()
@@ -53,20 +52,30 @@ class NDArrayVideoWidget(QWidget):
         self._arrayProcessor = ArrayProcessor()
         self._videoLabel = NDArrayLabel()
         self._videoSlider = ClickableSlider()
+        self._playButton = QPushButton()
+        self._pausedBySliderPress = False
 
         self.connectVideoPlayer()
         self.connectArrayProcessor()
         self.videoLabel().setAlignment(Qt.AlignCenter)
+        self.playButton().clicked.connect(self.onPlayButtonClicked)
         self.videoSlider().valueChanged.connect(self.onSliderValueChange)
+        self.videoSlider().sliderPressed.connect(self.onSliderPress)
+        self.videoSlider().sliderReleased.connect(self.onSliderRelease)
 
         self.initUI()
 
     def initUI(self):
+        control_layout = QHBoxLayout()
+        play_icon = self.style().standardIcon(QStyle.SP_MediaPlay)
+        self.playButton().setIcon(play_icon)
+        control_layout.addWidget(self.playButton())
         self.videoSlider().setOrientation(Qt.Horizontal)
+        control_layout.addWidget(self.videoSlider())
 
         layout = QVBoxLayout()
         layout.addWidget(self.videoLabel())
-        layout.addWidget(self.videoSlider())
+        layout.addLayout(control_layout)
         self.setLayout(layout)
 
     def videoPlayer(self) -> NDArrayVideoPlayerProtocol:
@@ -87,6 +96,9 @@ class NDArrayVideoWidget(QWidget):
         self.__durationConnection = self.videoPlayer().durationChanged.connect(
             self.onMediaDurationChange
         )
+        self.__playConnect = self.videoPlayer().playbackStateChanged.connect(
+            self.onPlaybackStateChange
+        )
 
     def disconnectVideoPlayer(self):
         self.videoPlayer().arrayChanged.disconnect(
@@ -97,6 +109,9 @@ class NDArrayVideoWidget(QWidget):
         )
         self.videoPlayer().durationChanged.disconnect(
             self.__durationConnection 
+        )
+        self.videoPlayer().playbackStateChanged.disconnect(
+            self.__playConnect
         )
 
     def arrayProcessor(self) -> ArrayProcessorProtocol:
@@ -137,6 +152,13 @@ class NDArrayVideoWidget(QWidget):
         """
         return self._videoSlider
 
+    def playButton(self) -> QPushButton:
+        return self._playButton
+
+    def pausedBySliderPress(self) -> bool:
+        """If true, video is paused by pressing slider."""
+        return self._pausedBySliderPress
+
     @Slot(np.ndarray)
     def onArrayPassedFromPlayer(self, array: NDArray):
         self.arrayProcessor().setArray(array)
@@ -155,73 +177,6 @@ class NDArrayVideoWidget(QWidget):
     def onMediaDurationChange(self, duration: int):
         """Change the range of video position slider."""
         self.videoSlider().setRange(0, duration)
-
-
-class NDArrayVideoPlayerWidget(NDArrayVideoWidget):
-    """
-    Widget to display, seek, and set playback state of video from numpy
-    arrays.
-
-    Playback state can be changed by :meth:`playButton`.
-
-    Examples
-    ========
-
-    >>> from PySide6.QtCore import QUrl
-    >>> from PySide6.QtWidgets import QApplication
-    >>> import sys
-    >>> from cv2PySide6 import get_data_path, NDArrayVideoPlayerWidget
-    >>> vidpath = get_data_path('hello.mp4')
-    >>> def runGUI():
-    ...     app = QApplication(sys.argv)
-    ...     w = NDArrayVideoPlayerWidget()
-    ...     w.videoPlayer().setSource(QUrl.fromLocalFile(vidpath))
-    ...     w.show()
-    ...     w.videoPlayer().play()
-    ...     app.exec()
-    ...     app.quit()
-    >>> runGUI() # doctest: +SKIP
-    """
-    def __init__(self, parent=None):
-        self._playButton = QPushButton()
-        self._pausedBySliderPress = False
-        super().__init__(parent)
-
-        self.playButton().clicked.connect(self.onPlayButtonClicked)
-        self.videoSlider().sliderPressed.connect(self.onSliderPress)
-        self.videoSlider().sliderReleased.connect(self.onSliderRelease)
-
-    def initUI(self):
-        control_layout = QHBoxLayout()
-        play_icon = self.style().standardIcon(QStyle.SP_MediaPlay)
-        self.playButton().setIcon(play_icon)
-        control_layout.addWidget(self.playButton())
-        self.videoSlider().setOrientation(Qt.Horizontal)
-        control_layout.addWidget(self.videoSlider())
-
-        layout = QVBoxLayout()
-        layout.addWidget(self.videoLabel())
-        layout.addLayout(control_layout)
-        self.setLayout(layout)
-
-    def connectVideoPlayer(self):
-        super().connectVideoPlayer()
-        self.__playConnect = self.videoPlayer().playbackStateChanged.connect(
-            self.onPlaybackStateChange
-        )
-
-    def disconnectVideoPlayer(self):
-        super().disconnectVideoPlayer()
-        self.videoPlayer().playbackStateChanged.disconnect(
-            self.__playConnect
-        )
-
-    def playButton(self) -> QPushButton:
-        return self._playButton
-
-    def pausedBySliderPress(self) -> bool:
-        """If true, video is paused by pressing slider."""
-        return self._pausedBySliderPress
 
     @Slot()
     def onPlayButtonClicked(self):

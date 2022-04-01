@@ -1,7 +1,7 @@
 """Video player example using ``cv2.VideoCapture``."""
 
 import cv2 # type: ignore
-from cv2PySide6 import ArrayProcessor, NDArrayVideoWidget
+from cv2PySide6 import ArrayProcessor, NDArrayVideoPlayerWidget
 import numpy as np
 from numpy.typing import NDArray
 from PySide6.QtCore import QThread, Signal, QObject, QTimer, Slot
@@ -272,7 +272,7 @@ class BGRProcessor(ArrayProcessor):
         return ret
 
 
-class CV2VideoWidget(NDArrayVideoWidget):
+class CV2VideoWidget(NDArrayVideoPlayerWidget):
     def __init__(self, parent=None):
         super().__init__(parent)
 
