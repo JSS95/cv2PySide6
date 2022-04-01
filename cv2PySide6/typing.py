@@ -21,12 +21,18 @@ class ArrayProcessorProtocol(Protocol):
 
 
 class VideoPlayerProtocol(Protocol):
+    """
+    Type annotation for video player protocol.
+    """
     arrayChanged: Signal
     positionChanged: Signal
     durationChanged: Signal
     playbackStateChanged: Signal
     setPosition: Callable[['VideoPlayerProtocol', int], Any]
+    setSource: Callable[['VideoPlayerProtocol', Any], Any]
     play: Callable[['VideoPlayerProtocol'], Any]
     pause: Callable[['VideoPlayerProtocol'], Any]
     stop: Callable[['VideoPlayerProtocol'], Any]
-    playbackState: QMediaPlayer.PlaybackState
+    playbackState: Callable[
+        ['VideoPlayerProtocol'], QMediaPlayer.PlaybackState
+    ]

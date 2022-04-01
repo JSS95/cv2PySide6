@@ -276,13 +276,11 @@ class CV2VideoWidget(NDArrayVideoWidget):
     def __init__(self, parent=None):
         super().__init__(parent)
 
-        self._player = CV2VideoPlayer(self)
-
-    def player(self) -> CV2VideoPlayer:
-        return self._player
+        self.setVideoPlayer(CV2VideoPlayer(self))
+        self.setArrayProcessor(BGRProcessor(self))
 
     def closeEvent(self, event):
-        self.player().stop()
+        self.videoPlayer().stop()
         super().closeEvent(event)
 
 
@@ -292,14 +290,11 @@ if __name__ == "__main__":
     from cv2PySide6 import get_data_path
 
     app = QApplication(sys.argv)
-    processor = BGRProcessor()
     widget = CV2VideoWidget()
 
-    widget.player().arrayChanged.connect(processor.setArray)
-    widget.setArrayProcessor(processor)
-
-    widget.player().setSource(get_data_path('hello.mp4'))
+    path = get_data_path('hello.mp4')
+    widget.videoPlayer().setSource(path)
     widget.show()
-    widget.player().play()
+    widget.videoPlayer().play()
     app.exec()
     app.quit()
