@@ -21,12 +21,20 @@ $ pip install cv2PySide6
 ## Single image
 
 `NDArrayLabel` is a label which can directly display `numpy.ndarray` object.
-To display single array, pass it directly to `NDArrayLabel.setArray`.
+To display single array, pass it directly to `NDArrayLabel.setArray()` method.
 
 ## Video
 
-`NDArrayVideoPlayerWidget` provides video pipeline which converts video frame to numpy array, process, and display.
-To construct custom pipeline, subclass `ArrayProcessor` and pass its instance to `NDArrayVideoPlayerWidget.setArrayProcessor`.
+`NDArrayVideoPlayerWidget` provides video widget with play/stop buttons and slider.
+It wraps internal video pipeline which converts video frame to numpy array, process, and display.  
+To customize video source object, use `NDArrayVideoPlayerWidget.setVideoPlayer()` method.
+To customize array processor, use `NDArrayVideoPlayerWidget.setArrayProcessor()` method.
+
+## Camera
+
+`NDArrayCameraWidget` provides video screen with internal video pipeline.  
+To customize camera session, use `NDArrayCameraWidget.setMediaCaptureSession()` method.
+To customize array processor, use `NDArrayCameraWidget.setArrayProcessor()` method.
 
 # Examples
 
