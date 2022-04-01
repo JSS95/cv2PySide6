@@ -13,7 +13,8 @@ from PySide6.QtMultimedia import QMediaPlayer
 from .labels import NDArrayLabel
 from .videoutil import (ClickableSlider, ArrayProcessor, NDArrayVideoPlayer,
     NDArrayMediaCaptureSession)
-from .typing import ArrayProcessorProtocol, NDArrayVideoPlayerProtocol
+from .typing import (ArrayProcessorProtocol, NDArrayVideoPlayerProtocol,
+    NDArrayMediaCaptureSessionProtocol)
 
 
 __all__ = [
@@ -345,12 +346,12 @@ class NDArrayCameraWidget(QWidget):
         layout.addWidget(self.videoLabel())
         self.setLayout(layout)
 
-    def mediaCaptureSession(self) -> NDArrayMediaCaptureSession:
+    def mediaCaptureSession(self) -> NDArrayMediaCaptureSessionProtocol:
         return self._mediaCaptureSession
 
-    def setMediaCaptureSession(self, session: NDArrayMediaCaptureSession):
+    def setMediaCaptureSession(self, sess: NDArrayMediaCaptureSessionProtocol):
         self.disconnectMediaCaptureSession()
-        self._mediaCaptureSession = session
+        self._mediaCaptureSession = sess
         self.connectMediaCaptureSession()
 
     def connectMediaCaptureSession(self):
