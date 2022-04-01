@@ -48,7 +48,7 @@ class NDArrayVideoPlayerWidget(QWidget):
     def __init__(self, parent=None):
         super().__init__(parent)
 
-        self._videoPlayer = NDArrayVideoPlayer()
+        self._videoPlayer = NDArrayVideoPlayer(self)
         self._arrayProcessor = ArrayProcessor()
         self._videoLabel = NDArrayLabel()
         self._videoSlider = ClickableSlider()
@@ -84,39 +84,50 @@ class NDArrayVideoPlayerWidget(QWidget):
         self.setLayout(layout)
 
     def videoPlayer(self) -> NDArrayVideoPlayerProtocol:
+        """Object to emit video frames as numy arrays."""
         return self._videoPlayer
 
     def setVideoPlayer(self, player: NDArrayVideoPlayerProtocol):
+        """
+        Update :meth:`videoPlayer` with *player* and reconnect signals.
+
+        Notes
+        =====
+
+        *player* must have *self* as parent before being passed to this
+        method, in order to prevent undesired destruction.
+
+        """
         self.disconnectVideoPlayer()
         self._videoPlayer = player
         self.connectVideoPlayer()
 
     def connectVideoPlayer(self):
-        self.__processConnection = self.videoPlayer().arrayChanged.connect(
+        self._processConnection = self.videoPlayer().arrayChanged.connect(
             self.onArrayPassedFromPlayer
         )
-        self.__positionConnection = self.videoPlayer().positionChanged.connect(
+        self._positionConnection = self.videoPlayer().positionChanged.connect(
             self.onMediaPositionChange
         )
-        self.__durationConnection = self.videoPlayer().durationChanged.connect(
+        self._durationConnection = self.videoPlayer().durationChanged.connect(
             self.onMediaDurationChange
         )
-        self.__playConnect = self.videoPlayer().playbackStateChanged.connect(
+        self._playConnect = self.videoPlayer().playbackStateChanged.connect(
             self.onPlaybackStateChange
         )
 
     def disconnectVideoPlayer(self):
         self.videoPlayer().arrayChanged.disconnect(
-            self.__processConnection
+            self._processConnection
         )
         self.videoPlayer().positionChanged.disconnect(
-            self.__positionConnection
+            self._positionConnection
         )
         self.videoPlayer().durationChanged.disconnect(
-            self.__durationConnection 
+            self._durationConnection 
         )
         self.videoPlayer().playbackStateChanged.disconnect(
-            self.__playConnect
+            self._playConnect
         )
 
     def arrayProcessor(self) -> ArrayProcessorProtocol:
