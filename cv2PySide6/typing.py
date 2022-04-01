@@ -5,7 +5,7 @@ from typing import Protocol, Callable, Any
 
 __all__ = [
     'ArrayProcessorProtocol',
-    'VideoPlayerProtocol',
+    'NDArrayVideoPlayerProtocol',
 ]
 
 
@@ -20,7 +20,7 @@ class ArrayProcessorProtocol(Protocol):
     setArray: Callable[['ArrayProcessorProtocol', NDArray], Any]
 
 
-class VideoPlayerProtocol(Protocol):
+class NDArrayVideoPlayerProtocol(Protocol):
     """
     Type annotation for video player protocol.
     """
@@ -28,11 +28,11 @@ class VideoPlayerProtocol(Protocol):
     positionChanged: Signal
     durationChanged: Signal
     playbackStateChanged: Signal
-    setPosition: Callable[['VideoPlayerProtocol', int], Any]
-    setSource: Callable[['VideoPlayerProtocol', Any], Any]
-    play: Callable[['VideoPlayerProtocol'], Any]
-    pause: Callable[['VideoPlayerProtocol'], Any]
-    stop: Callable[['VideoPlayerProtocol'], Any]
+    setPosition: Callable[['NDArrayVideoPlayerProtocol', int], Any]
+    setSource: Callable[['NDArrayVideoPlayerProtocol', Any], Any]
+    play: Callable[['NDArrayVideoPlayerProtocol'], Any]
+    pause: Callable[['NDArrayVideoPlayerProtocol'], Any]
+    stop: Callable[['NDArrayVideoPlayerProtocol'], Any]
     playbackState: Callable[
-        ['VideoPlayerProtocol'], QMediaPlayer.PlaybackState
+        ['NDArrayVideoPlayerProtocol'], QMediaPlayer.PlaybackState
     ]

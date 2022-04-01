@@ -12,7 +12,7 @@ from PySide6.QtMultimedia import QMediaPlayer
 
 from .labels import NDArrayLabel
 from .videoutil import ClickableSlider, ArrayProcessor, NDArrayVideoPlayer
-from .typing import ArrayProcessorProtocol, VideoPlayerProtocol
+from .typing import ArrayProcessorProtocol, NDArrayVideoPlayerProtocol
 
 
 __all__ = [
@@ -65,10 +65,10 @@ class NDArrayVideoWidget(QWidget):
         layout.addWidget(self.videoLabel())
         self.setLayout(layout)
 
-    def videoPlayer(self) -> VideoPlayerProtocol:
+    def videoPlayer(self) -> NDArrayVideoPlayerProtocol:
         return self._videoPlayer
 
-    def setVideoPlayer(self, player: VideoPlayerProtocol):
+    def setVideoPlayer(self, player: NDArrayVideoPlayerProtocol):
         self.disconnectVideoPlayer()
         self._videoPlayer = player
         self.connectVideoPlayer()
