@@ -84,9 +84,20 @@ class NDArrayVideoPlayerWidget(QWidget):
         self.setLayout(layout)
 
     def videoPlayer(self) -> NDArrayVideoPlayerProtocol:
+        """Object to emit video frames as numy arrays."""
         return self._videoPlayer
 
     def setVideoPlayer(self, player: NDArrayVideoPlayerProtocol):
+        """
+        Update :meth:`videoPlayer` with *player* and reconnect signals.
+
+        Notes
+        =====
+
+        *player* must have *self* as parent before being passed to this
+        method, in order to prevent undesired destruction.
+
+        """
         self.disconnectVideoPlayer()
         self._videoPlayer = player
         self.connectVideoPlayer()
