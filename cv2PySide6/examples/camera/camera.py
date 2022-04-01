@@ -23,15 +23,15 @@ if __name__ == "__main__":
     import sys
 
     app = QApplication(sys.argv)
-    player = NDArrayVideoWidget()
+    widget = NDArrayVideoWidget()
     processor = BlurringProcessor()
-    player.setArrayProcessor(processor)
+    widget.setArrayProcessor(processor)
 
     captureSession = QMediaCaptureSession()
     cameras = QMediaDevices.videoInputs()
     if cameras:
         # construct video pipeline: camera -> captureSession
-        # -> videoSink -> converter -> processor (-> label in player)
+        # -> videoSink -> converter -> processor (-> label in widget)
         camera = QCamera(cameras[0])
         videoSink = QVideoSink()
         converter = FrameToArrayConverter()
@@ -44,6 +44,6 @@ if __name__ == "__main__":
 
         camera.start()
 
-    player.show()
+    widget.show()
     app.exec()
     app.quit()
