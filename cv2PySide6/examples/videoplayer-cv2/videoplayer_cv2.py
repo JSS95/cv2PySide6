@@ -1,7 +1,7 @@
 """Video player example using ``cv2.VideoCapture``."""
 
 import cv2 # type: ignore
-from cv2PySide6 import ArrayProcessor,  NDArrayVideoWidget
+from cv2PySide6 import ArrayProcessor, NDArrayVideoWidget
 import numpy as np
 from numpy.typing import NDArray
 from PySide6.QtCore import QThread, Signal, QObject, QTimer, Slot

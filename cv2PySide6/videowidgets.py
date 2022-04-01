@@ -11,26 +11,26 @@ from PySide6.QtWidgets import (QWidget, QVBoxLayout, QHBoxLayout, QStyle,
 from PySide6.QtMultimedia import QMediaPlayer
 
 from .labels import NDArrayLabel
-from .videoutil import ClickableSlider, ArrayProcessor, NDArrayVideoPlayer
-from .typing import ArrayProcessorProtocol, NDArrayVideoPlayerProtocol
+from .videoutil import (ClickableSlider, ArrayProcessor, NDArrayVideoPlayer,
+    NDArrayMediaCaptureSession)
+from .typing import (ArrayProcessorProtocol, NDArrayVideoPlayerProtocol,
+    NDArrayMediaCaptureSessionProtocol)
 
 
 __all__ = [
     'NDArrayVideoWidget',
     'NDArrayVideoSeekerWidget',
     'NDArrayVideoPlayerWidget',
+    'NDArrayCameraWidget',
 ]
 
 
 class NDArrayVideoWidget(QWidget):
     """
-    Widget to display video from numpy arrays.
+    Widget to display numpy arrays from local video file.
 
     Examples
     ========
-
-    In this example, video pipeline of ``mediaPlayer -> videoSink ->
-    frame2Arr -> arrayProcessor`` is established to play video file.
 
     >>> from PySide6.QtCore import QUrl
     >>> from PySide6.QtWidgets import QApplication
@@ -301,3 +301,102 @@ class NDArrayVideoPlayerWidget(NDArrayVideoSeekerWidget):
         """Stop :meth:`mediaPlayer` before closing."""
         self.videoPlayer().stop()
         event.accept()
+
+
+class NDArrayCameraWidget(QWidget):
+    """
+    Widget to display numpy arrays from camera.
+
+    Examples
+    ========
+
+    >>> from PySide6.QtWidgets import QApplication
+    >>> from PySide6.QtMultimedia import QMediaDevices, QCamera
+    >>> import sys
+    >>> from cv2PySide6 import NDArrayCameraWidget
+    >>> def runGUI():
+    ...     app = QApplication(sys.argv)
+    ...     widget = NDArrayCameraWidget()
+    ...     cameras = QMediaDevices.videoInputs()
+    ...     if cameras:
+    ...         camera = QCamera(cameras[0])
+    ...         widget.mediaCaptureSession().setCamera(camera)
+    ...         camera.start()
+    ...     widget.show()
+    ...     app.exec()
+    ...     app.quit()
+    >>> runGUI() # doctest: +SKIP
+
+    """
+    def __init__(self, parent=None):
+        super().__init__(parent)
+
+        self._mediaCaptureSession = NDArrayMediaCaptureSession()
+        self._arrayProcessor = ArrayProcessor()
+        self._videoLabel = NDArrayLabel()
+
+        self.connectMediaCaptureSession()
+        self.connectArrayProcessor()
+        self.videoLabel().setAlignment(Qt.AlignCenter)
+
+        self.initUI()
+
+    def initUI(self):
+        layout = QVBoxLayout()
+        layout.addWidget(self.videoLabel())
+        self.setLayout(layout)
+
+    def mediaCaptureSession(self) -> NDArrayMediaCaptureSessionProtocol:
+        return self._mediaCaptureSession
+
+    def setMediaCaptureSession(self, sess: NDArrayMediaCaptureSessionProtocol):
+        self.disconnectMediaCaptureSession()
+        self._mediaCaptureSession = sess
+        self.connectMediaCaptureSession()
+
+    def connectMediaCaptureSession(self):
+        session = self.mediaCaptureSession()
+        self.__processConnection = session.arrayChanged.connect(
+            self.onArrayPassedFromCamera
+        )
+
+    def disconnectMediaCaptureSession(self):
+        self.mediaCaptureSession().arrayChanged.disconnect(
+            self.__processConnection
+        )
+
+    def arrayProcessor(self) -> ArrayProcessorProtocol:
+        """Process the array and provide to :meth:`videoLabel`."""
+        return self._arrayProcessor
+
+    def setArrayProcessor(self, processor: ArrayProcessorProtocol):
+        """
+        Change :meth:`arrayProcessor` and update signal connections.
+        """
+        self.disconnectArrayProcessor()
+        self._arrayProcessor = processor
+        self.connectArrayProcessor()
+
+    def connectArrayProcessor(self):
+        """
+        Connect signals to and slots from :meth:`arrayProcessor`.
+        """
+        self.__displayConnection = self.arrayProcessor().arrayChanged.connect(
+            self.videoLabel().setArray
+        )
+
+    def disconnectArrayProcessor(self):
+        """
+        Discoonnect signals to and slots from :meth:`arrayProcessor`.
+        """
+        self.arrayProcessor().arrayChanged.disconnect(
+            self.__displayConnection
+        )
+
+    def videoLabel(self) -> NDArrayLabel:
+        """Label to display video image."""
+        return self._videoLabel
+
+    @Slot(np.ndarray)
+    def onArrayPassedFromCamera(self, array: NDArray):
+        self.arrayProcessor().setArray(array)
