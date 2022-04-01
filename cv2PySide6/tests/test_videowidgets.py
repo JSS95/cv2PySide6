@@ -2,7 +2,8 @@ from PySide6.QtCore import QUrl
 from PySide6.QtGui import Qt
 from PySide6.QtMultimedia import QMediaPlayer
 
-from cv2PySide6 import get_data_path, NDArrayVideoPlayerWidget, ScalableQLabel
+from cv2PySide6 import (get_data_path, NDArrayVideoPlayerWidget,
+    ScalableQLabel, NDArrayVideoPlayer)
 
 VID_PATH = get_data_path('hello.mp4')
 
@@ -54,4 +55,6 @@ def test_NDArrayVideoPlayerWidget_lastframe_displayed(qtbot):
     assert not vpwidget.videoLabel().pixmap().toImage().isNull()
 
 
-# XXX: add tests for other features
+def test_NDArrayVideoPlayerWidget_setVideoPlayer(qtbot):
+    widget = NDArrayVideoPlayerWidget()
+    widget.setVideoPlayer(NDArrayVideoPlayer())
