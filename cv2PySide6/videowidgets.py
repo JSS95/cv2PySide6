@@ -53,12 +53,14 @@ class NDArrayVideoPlayerWidget(QWidget):
         self._videoLabel = NDArrayLabel()
         self._videoSlider = ClickableSlider()
         self._playButton = QPushButton()
+        self._stopButton = QPushButton()
         self._pausedBySliderPress = False
 
         self.connectVideoPlayer()
         self.connectArrayProcessor()
         self.videoLabel().setAlignment(Qt.AlignCenter)
         self.playButton().clicked.connect(self.onPlayButtonClicked)
+        self.stopButton().clicked.connect(self.videoPlayer().stop)
         self.videoSlider().valueChanged.connect(self.onSliderValueChange)
         self.videoSlider().sliderPressed.connect(self.onSliderPress)
         self.videoSlider().sliderReleased.connect(self.onSliderRelease)
@@ -70,6 +72,9 @@ class NDArrayVideoPlayerWidget(QWidget):
         play_icon = self.style().standardIcon(QStyle.SP_MediaPlay)
         self.playButton().setIcon(play_icon)
         control_layout.addWidget(self.playButton())
+        stop_icon = self.style().standardIcon(QStyle.SP_MediaStop)
+        self.stopButton().setIcon(stop_icon)
+        control_layout.addWidget(self.stopButton())
         self.videoSlider().setOrientation(Qt.Horizontal)
         control_layout.addWidget(self.videoSlider())
 
@@ -154,6 +159,9 @@ class NDArrayVideoPlayerWidget(QWidget):
 
     def playButton(self) -> QPushButton:
         return self._playButton
+
+    def stopButton(self) -> QPushButton:
+        return self._stopButton
 
     def pausedBySliderPress(self) -> bool:
         """If true, video is paused by pressing slider."""
