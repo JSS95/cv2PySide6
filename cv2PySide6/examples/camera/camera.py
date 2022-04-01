@@ -2,7 +2,7 @@
 
 import cv2 # type: ignore
 from numpy.typing import NDArray
-from cv2PySide6 import ArrayProcessor, NDArrayVideoWidget
+from cv2PySide6 import ArrayProcessor, NDArrayCameraWidget
 
 
 class BlurringProcessor(ArrayProcessor):
@@ -17,31 +17,19 @@ class BlurringProcessor(ArrayProcessor):
 
 if __name__ == "__main__":
     from PySide6.QtWidgets import QApplication
-    from PySide6.QtMultimedia import (QMediaCaptureSession, QMediaDevices,
-        QCamera, QVideoSink)
-    from cv2PySide6 import FrameToArrayConverter
+    from PySide6.QtMultimedia import QMediaDevices, QCamera
     import sys
 
     app = QApplication(sys.argv)
-    widget = NDArrayVideoWidget()
+    widget = NDArrayCameraWidget()
+
     processor = BlurringProcessor()
     widget.setArrayProcessor(processor)
 
-    captureSession = QMediaCaptureSession()
     cameras = QMediaDevices.videoInputs()
     if cameras:
-        # construct video pipeline: camera -> captureSession
-        # -> videoSink -> converter -> processor (-> label in widget)
         camera = QCamera(cameras[0])
-        videoSink = QVideoSink()
-        converter = FrameToArrayConverter()
-        captureSession.setCamera(camera)
-        captureSession.setVideoSink(videoSink)
-        videoSink.videoFrameChanged.connect(
-            converter.setVideoFrame
-        )
-        converter.arrayChanged.connect(processor.setArray)
-
+        widget.mediaCaptureSession().setCamera(camera)
         camera.start()
 
     widget.show()

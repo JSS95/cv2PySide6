@@ -4,7 +4,7 @@ from .labels import ScalableQLabel, NDArrayLabel
 from .videoutil import (ArrayProcessor, FrameToArrayConverter, ClickableSlider,
     NDArrayVideoPlayer)
 from .videowidgets import (NDArrayVideoWidget, NDArrayVideoSeekerWidget,
-    NDArrayVideoPlayerWidget)
+    NDArrayVideoPlayerWidget, NDArrayCameraWidget)
 from .util import get_data_path
 
 
@@ -20,6 +20,7 @@ __all__ = [
     'NDArrayVideoWidget',
     'NDArrayVideoSeekerWidget',
     'NDArrayVideoPlayerWidget',
+    'NDArrayCameraWidget',
 
     'get_data_path',
 ]
