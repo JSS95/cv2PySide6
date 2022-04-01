@@ -60,7 +60,7 @@ class NDArrayVideoPlayerWidget(QWidget):
         self.connectArrayProcessor()
         self.videoLabel().setAlignment(Qt.AlignCenter)
         self.playButton().clicked.connect(self.onPlayButtonClicked)
-        self.stopButton().clicked.connect(self.videoPlayer().stop)
+        self.stopButton().clicked.connect(self.onStopButtonClicked)
         self.videoSlider().valueChanged.connect(self.onSliderValueChange)
         self.videoSlider().sliderPressed.connect(self.onSliderPress)
         self.videoSlider().sliderReleased.connect(self.onSliderRelease)
@@ -194,6 +194,10 @@ class NDArrayVideoPlayerWidget(QWidget):
             self.videoPlayer().pause()
         else:
             self.videoPlayer().play()
+
+    @Slot()
+    def onStopButtonClicked(self):
+        self.videoPlayer().stop()
 
     @Slot()
     def onSliderPress(self):
