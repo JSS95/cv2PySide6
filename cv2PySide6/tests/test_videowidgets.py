@@ -57,4 +57,4 @@ def test_NDArrayVideoPlayerWidget_lastframe_displayed(qtbot):
 
 def test_NDArrayVideoPlayerWidget_setVideoPlayer(qtbot):
     widget = NDArrayVideoPlayerWidget()
-    widget.setVideoPlayer(NDArrayVideoPlayer())
+    widget.setVideoPlayer(NDArrayVideoPlayer(widget))
