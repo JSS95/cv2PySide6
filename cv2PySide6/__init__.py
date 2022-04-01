@@ -3,7 +3,7 @@ from .version import __version__ # noqa
 from .labels import ScalableQLabel, NDArrayLabel
 from .videoutil import (ArrayProcessor, FrameToArrayConverter, ClickableSlider,
     NDArrayVideoPlayer)
-from .videowidgets import (NDArrayVideoWidget, NDArrayVideoSeekerWidget,
+from .videowidgets import (NDArrayVideoWidget,
     NDArrayVideoPlayerWidget, NDArrayCameraWidget)
 from .util import get_data_path
 
@@ -18,7 +18,6 @@ __all__ = [
     'NDArrayVideoPlayer',
 
     'NDArrayVideoWidget',
-    'NDArrayVideoSeekerWidget',
     'NDArrayVideoPlayerWidget',
     'NDArrayCameraWidget',
 
