@@ -1,6 +1,6 @@
 """Video player example with canny edge detection process."""
 
-import cv2 # type: ignore
+import cv2  # type: ignore
 import numpy as np
 from numpy.typing import NDArray
 from PySide6.QtCore import Slot, QUrl
@@ -72,19 +72,19 @@ class CannyVideoPlayerWidget(NDArrayVideoPlayerWidget):
 
     @Slot(bool)
     def onCannyButtonToggle(self, state: bool):
-        self.arrayProcessor().setCannyMode(state) # type: ignore
+        self.arrayProcessor().setCannyMode(state)  # type: ignore
         if self.videoPlayer().playbackState() != QMediaPlayer.PlayingState:
-            self.arrayProcessor().refreshCurrentArray() # type: ignore
+            self.arrayProcessor().refreshCurrentArray()  # type: ignore
 
 
-if __name__ == "__main__":
+if __name__ == '__main__':
     from PySide6.QtWidgets import QApplication
     import sys
     from cv2PySide6 import get_data_path
 
     app = QApplication(sys.argv)
     widget = CannyVideoPlayerWidget()
-    url = QUrl.fromLocalFile(get_data_path("hello.mp4"))
+    url = QUrl.fromLocalFile(get_data_path('hello.mp4'))
     widget.videoPlayer().setSource(url)
     widget.show()
     app.exec()

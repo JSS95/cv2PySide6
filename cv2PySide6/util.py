@@ -34,7 +34,7 @@ def get_data_path(*paths: str) -> str:
     >>> from cv2PySide6 import get_data_path
     >>> get_data_path() # doctest: +SKIP
     'path/cv2PySide6/data'
-    >>> get_data_path("hello.mp4") # doctest: +SKIP
+    >>> get_data_path('hello.mp4') # doctest: +SKIP
     'path/cv2PySide6/data/hello.mp4'
 
     """

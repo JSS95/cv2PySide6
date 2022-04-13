@@ -6,15 +6,20 @@ import numpy as np
 from numpy.typing import NDArray
 from PySide6.QtCore import Qt, Slot
 from PySide6.QtGui import QCloseEvent
-from PySide6.QtWidgets import (QWidget, QVBoxLayout, QHBoxLayout, QStyle,
-    QPushButton)
+from PySide6.QtWidgets import (
+    QWidget, QVBoxLayout, QHBoxLayout, QStyle, QPushButton
+)
 from PySide6.QtMultimedia import QMediaPlayer
 
 from .labels import NDArrayLabel
-from .videoutil import (ClickableSlider, ArrayProcessor, NDArrayVideoPlayer,
-    NDArrayMediaCaptureSession)
-from .typing import (ArrayProcessorProtocol, NDArrayVideoPlayerProtocol,
-    NDArrayMediaCaptureSessionProtocol)
+from .videoutil import (
+    ClickableSlider, ArrayProcessor, NDArrayVideoPlayer,
+    NDArrayMediaCaptureSession
+)
+from .typing import (
+    ArrayProcessorProtocol, NDArrayVideoPlayerProtocol,
+    NDArrayMediaCaptureSessionProtocol
+)
 
 
 __all__ = [
@@ -124,7 +129,7 @@ class NDArrayVideoPlayerWidget(QWidget):
             self._positionConnection
         )
         self.videoPlayer().durationChanged.disconnect(
-            self._durationConnection 
+            self._durationConnection
         )
         self.videoPlayer().playbackStateChanged.disconnect(
             self._playConnect
@@ -163,9 +168,7 @@ class NDArrayVideoPlayerWidget(QWidget):
         return self._videoLabel
 
     def videoSlider(self) -> ClickableSlider:
-        """
-        Slider to control :meth:`videoPlayer`.
-        """
+        """Slider to control :meth:`videoPlayer`."""
         return self._videoSlider
 
     def playButton(self) -> QPushButton:
@@ -201,8 +204,10 @@ class NDArrayVideoPlayerWidget(QWidget):
     @Slot()
     def onPlayButtonClicked(self):
         """Switch play-pause state of media player."""
-        if (self.videoPlayer().playbackState()
-            == QMediaPlayer.PlayingState):
+        if (
+            self.videoPlayer().playbackState()
+            == QMediaPlayer.PlayingState
+        ):
             self.videoPlayer().pause()
         else:
             self.videoPlayer().play()
@@ -214,16 +219,20 @@ class NDArrayVideoPlayerWidget(QWidget):
     @Slot()
     def onSliderPress(self):
         """Pause if the video was playing."""
-        if (self.videoPlayer().playbackState()
-            == QMediaPlayer.PlayingState):
+        if (
+            self.videoPlayer().playbackState()
+            == QMediaPlayer.PlayingState
+        ):
             self._pausedBySliderPress = True
             self.videoPlayer().pause()
 
     @Slot()
     def onSliderRelease(self):
         """Play if the video was paused by :meth:`onSliderPress`."""
-        if (self.videoPlayer().playbackState()
-            == QMediaPlayer.PausedState):
+        if (
+            self.videoPlayer().playbackState()
+            == QMediaPlayer.PausedState
+        ):
             if self.pausedBySliderPress():
                 self._pausedBySliderPress = False
                 self.videoPlayer().play()

@@ -2,9 +2,11 @@ from PySide6.QtCore import QUrl
 from PySide6.QtGui import Qt
 from PySide6.QtMultimedia import QMediaPlayer
 
-from cv2PySide6 import (get_data_path, NDArrayVideoPlayerWidget,
+from cv2PySide6 import (
+    get_data_path, NDArrayVideoPlayerWidget,
     ScalableQLabel, NDArrayVideoPlayer, NDArrayCameraWidget,
-    NDArrayMediaCaptureSession)
+    NDArrayMediaCaptureSession
+)
 
 VID_PATH = get_data_path('hello.mp4')
 
@@ -29,14 +31,14 @@ def test_NDArrayVideoPlayerWidget_playback(qtbot):
     vpwidget.videoPlayer().setPlaybackRate(100)
     with qtbot.waitSignals(
         [
-        vpwidget.videoPlayer().playbackStateChanged,
-        vpwidget.videoPlayer().playbackStateChanged,
-        vpwidget.videoPlayer().mediaStatusChanged,
+            vpwidget.videoPlayer().playbackStateChanged,
+            vpwidget.videoPlayer().playbackStateChanged,
+            vpwidget.videoPlayer().mediaStatusChanged,
         ],
         check_params_cbs=[
-        lambda state: state == QMediaPlayer.PlayingState,
-        lambda state: state == QMediaPlayer.StoppedState,
-        lambda status: status == QMediaPlayer.EndOfMedia,
+            lambda state: state == QMediaPlayer.PlayingState,
+            lambda state: state == QMediaPlayer.StoppedState,
+            lambda status: status == QMediaPlayer.EndOfMedia,
         ],
         timeout=10000,
     ):
@@ -51,8 +53,8 @@ def test_NDArrayVideoPlayerWidget_lastframe_displayed(qtbot):
     vpwidget.videoPlayer().setPlaybackRate(100)
     qtbot.mouseClick(vpwidget.playButton(), Qt.LeftButton)
     qtbot.waitUntil(
-        lambda: vpwidget.videoPlayer().playbackState() \
-                != QMediaPlayer.PlayingState,
+        lambda: (vpwidget.videoPlayer().playbackState()
+                 != QMediaPlayer.PlayingState),
         timeout=10000,
     )
     assert not vpwidget.videoLabel().pixmap().toImage().isNull()

@@ -7,9 +7,10 @@ from numpy.typing import NDArray
 from PySide6.QtCore import Qt, QPointF, QObject, Signal, Slot
 from PySide6.QtGui import QMouseEvent, QImage
 from PySide6.QtWidgets import QSlider, QStyleOptionSlider, QStyle
-from PySide6.QtMultimedia import (QVideoFrame, QMediaPlayer, QVideoSink,
-    QMediaCaptureSession)
-from qimage2ndarray import rgb_view # type: ignore
+from PySide6.QtMultimedia import (
+    QVideoFrame, QMediaPlayer, QVideoSink, QMediaCaptureSession
+)
+from qimage2ndarray import rgb_view  # type: ignore
 
 
 __all__ = [
