@@ -1,8 +1,10 @@
 from .version import __version__ # noqa
 
 from .labels import ScalableQLabel, NDArrayLabel
-from .videoutil import (ArrayProcessor, FrameToArrayConverter, ClickableSlider,
-    NDArrayVideoPlayer, NDArrayMediaCaptureSession)
+from .videoutil import (
+    ArrayProcessor, FrameToArrayConverter, ClickableSlider,
+    NDArrayVideoPlayer, NDArrayMediaCaptureSession
+)
 from .videowidgets import NDArrayVideoPlayerWidget, NDArrayCameraWidget
 from .util import get_data_path
 

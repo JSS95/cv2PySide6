@@ -1,6 +1,6 @@
 """Camera example with Gaussian blurring process."""
 
-import cv2 # type: ignore
+import cv2  # type: ignore
 from numpy.typing import NDArray
 from cv2PySide6 import ArrayProcessor, NDArrayCameraWidget
 
@@ -15,7 +15,7 @@ class BlurringProcessor(ArrayProcessor):
         return ret
 
 
-if __name__ == "__main__":
+if __name__ == '__main__':
     from PySide6.QtWidgets import QApplication
     from PySide6.QtMultimedia import QMediaDevices, QCamera
     import sys

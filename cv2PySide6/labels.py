@@ -8,7 +8,7 @@ from PySide6.QtCore import Qt, Slot
 from PySide6.QtGui import QPixmap
 from PySide6.QtWidgets import QLabel, QSizePolicy
 
-from qimage2ndarray import array2qimage # type: ignore
+from qimage2ndarray import array2qimage  # type: ignore
 
 __all__ = [
     'ScalableQLabel',
@@ -75,7 +75,7 @@ class ScalableQLabel(QLabel):
         # make label shrinkable
         self.setSizePolicy(QSizePolicy.Expanding,
                            QSizePolicy.Expanding)
-        self.setMinimumSize(1, 1) # (0, 0) prevents resizing
+        self.setMinimumSize(1, 1)  # (0, 0) prevents resizing
 
     def originalPixmap(self) -> QPixmap:
         """Original pixmap before scaling."""
@@ -137,7 +137,7 @@ class NDArrayLabel(ScalableQLabel):
     >>> from PySide6.QtWidgets import QApplication
     >>> import sys
     >>> from cv2PySide6 import NDArrayLabel, get_data_path
-    >>> img = cv2.imread(get_data_path("hello.jpg"))
+    >>> img = cv2.imread(get_data_path('hello.jpg'))
     >>> def runGUI():
     ...     app = QApplication(sys.argv)
     ...     label = NDArrayLabel()
