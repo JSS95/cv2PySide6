@@ -185,7 +185,8 @@ class NDArrayVideoPlayerWidget(QWidget):
     @Slot(int)
     def onSliderValueChange(self, position: int):
         """Set the position of media player."""
-        self.videoPlayer().setPosition(position)
+        if self.pausedBySliderPress():
+            self.videoPlayer().setPosition(position)
 
     @Slot(int)
     def onMediaPositionChange(self, position: int):
