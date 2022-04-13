@@ -37,7 +37,8 @@ def test_NDArrayVideoPlayerWidget_playback(qtbot):
         lambda state: state == QMediaPlayer.PlayingState,
         lambda state: state == QMediaPlayer.StoppedState,
         lambda status: status == QMediaPlayer.EndOfMedia,
-        ]
+        ],
+        timeout=10000,
     ):
         qtbot.mouseClick(vpwidget.playButton(), Qt.LeftButton)
 
@@ -51,7 +52,8 @@ def test_NDArrayVideoPlayerWidget_lastframe_displayed(qtbot):
     qtbot.mouseClick(vpwidget.playButton(), Qt.LeftButton)
     qtbot.waitUntil(
         lambda: vpwidget.videoPlayer().playbackState() \
-                != QMediaPlayer.PlayingState
+                != QMediaPlayer.PlayingState,
+        timeout=10000,
     )
     assert not vpwidget.videoLabel().pixmap().toImage().isNull()
 
