@@ -11,6 +11,7 @@ from PySide6.QtMultimedia import (
     QVideoFrame, QMediaPlayer, QVideoSink, QMediaCaptureSession
 )
 from qimage2ndarray import rgb_view  # type: ignore
+from typing import Callable
 
 
 __all__ = [
@@ -52,6 +53,7 @@ class FrameToArrayConverter(QObject):
     def __init__(self, parent=None):
         super().__init__(parent)
         self._ignoreNullFrame = True
+        self._converter = rgb_view
 
     def ignoreNullFrame(self) -> bool:
         """
@@ -78,14 +80,23 @@ class FrameToArrayConverter(QObject):
             array = self.convertQImageToArray(qimg)
             self.arrayChanged.emit(array)
 
-    @staticmethod
-    def convertQImageToArray(qimg: QImage) -> NDArray:
+    def converter(self) -> Callable[[QImage], NDArray]:
+        """
+        A callable to convert ``QImage`` instance to numpy array.
+        Default is ``qimage2.ndarray.rgb_view``.
+        """
+        return self._converter
+
+    def setConverter(self, func: Callable[[QImage], NDArray]):
+        self._converter = func
+
+    def convertQImageToArray(self, qimg: QImage) -> NDArray:
         """
         Convert *qimg* to numpy array. Null image is converted to
         empty array.
         """
         if not qimg.isNull():
-            array = rgb_view(qimg)
+            array = self.converter()(qimg)
         else:
             array = np.empty((0, 0, 0))
         return array
