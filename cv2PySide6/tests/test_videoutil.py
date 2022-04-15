@@ -1,9 +1,9 @@
-import cv2
+import cv2  # type: ignore
 import numpy as np
 from PySide6.QtCore import QPoint, QUrl
 from PySide6.QtGui import Qt
 import pytest
-from qimage2ndarray import byte_view, gray2qimage, array2qimage
+from qimage2ndarray import byte_view, gray2qimage, array2qimage  # type: ignore
 
 from cv2PySide6 import (
     FrameToArrayConverter, ClickableSlider, NDArrayVideoPlayer, get_data_path
