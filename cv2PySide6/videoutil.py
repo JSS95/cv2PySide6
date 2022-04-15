@@ -47,6 +47,15 @@ class FrameToArrayConverter(QObject):
     """
     Video pipeline component which converts ``QVideoFrame`` to numpy
     array and emits to :attr:`arrayChanged`.
+
+    ``QVideoFrame`` is first transformed to ``QImage`` and then
+    converted by :meth:`converter`. You can change the converter by
+    :meth:`setConverter`.
+
+    Null frame does not emit array by default. If you set
+    :meth:`ignoreNullFrame` to False, three-dimensional empty array will
+    be emitted.
+
     """
     arrayChanged = Signal(np.ndarray)
 
