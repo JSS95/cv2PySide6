@@ -8,18 +8,21 @@ from PySide6.QtCore import Qt, QPointF, QObject, Signal, Slot
 from PySide6.QtGui import QMouseEvent, QImage
 from PySide6.QtWidgets import QSlider, QStyleOptionSlider, QStyle
 from PySide6.QtMultimedia import (
-    QVideoFrame, QMediaPlayer, QVideoSink, QMediaCaptureSession
+    QVideoFrame,
+    QMediaPlayer,
+    QVideoSink,
+    QMediaCaptureSession,
 )
 from qimage2ndarray import rgb_view  # type: ignore
 from typing import Callable
 
 
 __all__ = [
-    'ArrayProcessor',
-    'FrameToArrayConverter',
-    'ClickableSlider',
-    'NDArrayVideoPlayer',
-    'NDArrayMediaCaptureSession',
+    "ArrayProcessor",
+    "FrameToArrayConverter",
+    "ClickableSlider",
+    "NDArrayVideoPlayer",
+    "NDArrayMediaCaptureSession",
 ]
 
 
@@ -28,6 +31,7 @@ class ArrayProcessor(QObject):
     Video pipeline object to process numpy array and emit to
     :attr:`arrayChanged`.
     """
+
     arrayChanged = Signal(np.ndarray)
 
     @Slot(np.ndarray)
@@ -57,6 +61,7 @@ class FrameToArrayConverter(QObject):
     be emitted.
 
     """
+
     arrayChanged = Signal(np.ndarray)
 
     def __init__(self, parent=None):
@@ -113,6 +118,7 @@ class FrameToArrayConverter(QObject):
 
 class ClickableSlider(QSlider):
     """``QSlider`` whose groove can be clicked to move to position."""
+
     # https://stackoverflow.com/questions/52689047
     def mousePressEvent(self, event: QMouseEvent):
         if event.button() == Qt.LeftButton:
@@ -123,14 +129,12 @@ class ClickableSlider(QSlider):
     def pixelPosToRangeValue(self, pos: QPointF) -> int:
         opt = QStyleOptionSlider()
         self.initStyleOption(opt)
-        gr = self.style().subControlRect(QStyle.CC_Slider,
-                                         opt,
-                                         QStyle.SC_SliderGroove,
-                                         self)
-        sr = self.style().subControlRect(QStyle.CC_Slider,
-                                         opt,
-                                         QStyle.SC_SliderHandle,
-                                         self)
+        gr = self.style().subControlRect(
+            QStyle.CC_Slider, opt, QStyle.SC_SliderGroove, self
+        )
+        sr = self.style().subControlRect(
+            QStyle.CC_Slider, opt, QStyle.SC_SliderHandle, self
+        )
 
         if self.orientation() == Qt.Horizontal:
             sliderLength = sr.width()
@@ -142,11 +146,13 @@ class ClickableSlider(QSlider):
             sliderMax = gr.bottom() - sliderLength + 1
         pr = pos - sr.center() + sr.topLeft()
         p = pr.x() if self.orientation() == Qt.Horizontal else pr.y()
-        return QStyle.sliderValueFromPosition(self.minimum(),
-                                              self.maximum(),
-                                              int(p - sliderMin),
-                                              sliderMax - sliderMin,
-                                              opt.upsideDown)
+        return QStyle.sliderValueFromPosition(
+            self.minimum(),
+            self.maximum(),
+            int(p - sliderMin),
+            sliderMax - sliderMin,
+            opt.upsideDown,
+        )
 
 
 class NDArrayVideoPlayer(QMediaPlayer):
@@ -154,6 +160,7 @@ class NDArrayVideoPlayer(QMediaPlayer):
     Video player which emits frames as numpy arrays to
     :attr:`arrayChanged` signal.
     """
+
     arrayChanged = Signal(np.ndarray)
 
     def __init__(self, parent=None):
@@ -175,6 +182,7 @@ class NDArrayMediaCaptureSession(QMediaCaptureSession):
     Media capture session which emits frames from camera as numpy arrays
     to :attr:`arrayChanged` signal.
     """
+
     arrayChanged = Signal(np.ndarray)
 
     def __init__(self, parent=None):

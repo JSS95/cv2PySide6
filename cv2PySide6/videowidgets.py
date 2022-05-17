@@ -6,25 +6,26 @@ import numpy as np
 from numpy.typing import NDArray
 from PySide6.QtCore import Qt, Slot
 from PySide6.QtGui import QCloseEvent
-from PySide6.QtWidgets import (
-    QWidget, QVBoxLayout, QHBoxLayout, QStyle, QPushButton
-)
+from PySide6.QtWidgets import QWidget, QVBoxLayout, QHBoxLayout, QStyle, QPushButton
 from PySide6.QtMultimedia import QMediaPlayer
 
 from .labels import NDArrayLabel
 from .videoutil import (
-    ClickableSlider, ArrayProcessor, NDArrayVideoPlayer,
-    NDArrayMediaCaptureSession
+    ClickableSlider,
+    ArrayProcessor,
+    NDArrayVideoPlayer,
+    NDArrayMediaCaptureSession,
 )
 from .typing import (
-    ArrayProcessorProtocol, NDArrayVideoPlayerProtocol,
-    NDArrayMediaCaptureSessionProtocol
+    ArrayProcessorProtocol,
+    NDArrayVideoPlayerProtocol,
+    NDArrayMediaCaptureSessionProtocol,
 )
 
 
 __all__ = [
-    'NDArrayVideoPlayerWidget',
-    'NDArrayCameraWidget',
+    "NDArrayVideoPlayerWidget",
+    "NDArrayCameraWidget",
 ]
 
 
@@ -50,6 +51,7 @@ class NDArrayVideoPlayerWidget(QWidget):
     ...     app.quit()
     >>> runGUI() # doctest: +SKIP
     """
+
     def __init__(self, parent=None):
         super().__init__(parent)
 
@@ -122,18 +124,10 @@ class NDArrayVideoPlayerWidget(QWidget):
         )
 
     def disconnectVideoPlayer(self):
-        self.videoPlayer().arrayChanged.disconnect(
-            self._processConnection
-        )
-        self.videoPlayer().positionChanged.disconnect(
-            self._positionConnection
-        )
-        self.videoPlayer().durationChanged.disconnect(
-            self._durationConnection
-        )
-        self.videoPlayer().playbackStateChanged.disconnect(
-            self._playConnect
-        )
+        self.videoPlayer().arrayChanged.disconnect(self._processConnection)
+        self.videoPlayer().positionChanged.disconnect(self._positionConnection)
+        self.videoPlayer().durationChanged.disconnect(self._durationConnection)
+        self.videoPlayer().playbackStateChanged.disconnect(self._playConnect)
 
     def arrayProcessor(self) -> ArrayProcessorProtocol:
         """Process the array and provide to :meth:`videoLabel`."""
@@ -159,9 +153,7 @@ class NDArrayVideoPlayerWidget(QWidget):
         """
         Discoonnect signals to and slots from :meth:`arrayProcessor`.
         """
-        self.arrayProcessor().arrayChanged.disconnect(
-            self.__displayConnection
-        )
+        self.arrayProcessor().arrayChanged.disconnect(self.__displayConnection)
 
     def videoLabel(self) -> NDArrayLabel:
         """Label to display video image."""
@@ -204,10 +196,7 @@ class NDArrayVideoPlayerWidget(QWidget):
     @Slot()
     def onPlayButtonClicked(self):
         """Switch play-pause state of media player."""
-        if (
-            self.videoPlayer().playbackState()
-            == QMediaPlayer.PlayingState
-        ):
+        if self.videoPlayer().playbackState() == QMediaPlayer.PlayingState:
             self.videoPlayer().pause()
         else:
             self.videoPlayer().play()
@@ -219,10 +208,7 @@ class NDArrayVideoPlayerWidget(QWidget):
     @Slot()
     def onSliderPress(self):
         """Pause if the video was playing."""
-        if (
-            self.videoPlayer().playbackState()
-            == QMediaPlayer.PlayingState
-        ):
+        if self.videoPlayer().playbackState() == QMediaPlayer.PlayingState:
             self._pausedBySliderPress = True
             self.videoPlayer().pause()
             self.onSliderValueChange(self.videoSlider().value())
@@ -230,10 +216,7 @@ class NDArrayVideoPlayerWidget(QWidget):
     @Slot()
     def onSliderRelease(self):
         """Play if the video was paused by :meth:`onSliderPress`."""
-        if (
-            self.videoPlayer().playbackState()
-            == QMediaPlayer.PausedState
-        ):
+        if self.videoPlayer().playbackState() == QMediaPlayer.PausedState:
             if self.pausedBySliderPress():
                 self._pausedBySliderPress = False
                 self.videoPlayer().play()
@@ -279,6 +262,7 @@ class NDArrayCameraWidget(QWidget):
     >>> runGUI() # doctest: +SKIP
 
     """
+
     def __init__(self, parent=None):
         super().__init__(parent)
 
@@ -312,9 +296,7 @@ class NDArrayCameraWidget(QWidget):
         )
 
     def disconnectMediaCaptureSession(self):
-        self.mediaCaptureSession().arrayChanged.disconnect(
-            self.__processConnection
-        )
+        self.mediaCaptureSession().arrayChanged.disconnect(self.__processConnection)
 
     def arrayProcessor(self) -> ArrayProcessorProtocol:
         """Process the array and provide to :meth:`videoLabel`."""
@@ -340,9 +322,7 @@ class NDArrayCameraWidget(QWidget):
         """
         Discoonnect signals to and slots from :meth:`arrayProcessor`.
         """
-        self.arrayProcessor().arrayChanged.disconnect(
-            self.__displayConnection
-        )
+        self.arrayProcessor().arrayChanged.disconnect(self.__displayConnection)
 
     def videoLabel(self) -> NDArrayLabel:
         """Label to display video image."""

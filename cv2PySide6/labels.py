@@ -11,8 +11,8 @@ from PySide6.QtWidgets import QLabel, QSizePolicy
 from qimage2ndarray import array2qimage  # type: ignore
 
 __all__ = [
-    'ScalableQLabel',
-    'NDArrayLabel',
+    "ScalableQLabel",
+    "NDArrayLabel",
 ]
 
 
@@ -57,6 +57,7 @@ class ScalableQLabel(QLabel):
             Pixmap is scaled to any size.
 
         """
+
         PM_NoScale = 0
         PM_DownScaleOnly = 1
         PM_UpScaleOnly = 2
@@ -73,8 +74,7 @@ class ScalableQLabel(QLabel):
         self._original_pixmap = QPixmap()
         self._pixmapScaleMode = self.PM_DownScaleOnly
         # make label shrinkable
-        self.setSizePolicy(QSizePolicy.Expanding,
-                           QSizePolicy.Expanding)
+        self.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Expanding)
         self.setMinimumSize(1, 1)  # (0, 0) prevents resizing
 
     def originalPixmap(self) -> QPixmap:
@@ -112,7 +112,7 @@ class ScalableQLabel(QLabel):
             elif mode == self.PM_AllScale:
                 flag = True
             else:
-                msg = 'Unrecognized pixmap scale mode: %s' % mode
+                msg = "Unrecognized pixmap scale mode: %s" % mode
                 raise TypeError(msg)
 
         if flag:
@@ -148,6 +148,7 @@ class NDArrayLabel(ScalableQLabel):
     >>> runGUI() # doctest: +SKIP
 
     """
+
     @Slot(np.ndarray)
     def setArray(self, array: np.ndarray):
         """Convert the RGB(A) array to pixmap and display."""
