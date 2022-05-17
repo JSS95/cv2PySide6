@@ -1,26 +1,12 @@
-from numpy.typing import NDArray
 from PySide6.QtCore import Signal
 from PySide6.QtMultimedia import QMediaPlayer
 from typing import Protocol, Callable, Any
 
 __all__ = [
-    "ArrayProcessorProtocol",
     "NDArrayVideoPlayerProtocol",
     "CameraProtocol",
     "NDArrayMediaCaptureSessionProtocol",
 ]
-
-
-class ArrayProcessorProtocol(Protocol):
-    """
-    Type annotation for array processor protocol.
-
-    New image array is passed down from upstream pipeline to
-    ``setArray`` slot. ``arrayChanged`` emits processed array.
-    """
-
-    arrayChanged: Signal
-    setArray: Callable[["ArrayProcessorProtocol", NDArray], Any]
 
 
 class NDArrayVideoPlayerProtocol(Protocol):
@@ -42,12 +28,15 @@ class NDArrayVideoPlayerProtocol(Protocol):
 
 
 class CameraProtocol(Protocol):
-    """
-    Type annotation for camera protocol.
-    """
+    """Type annotation for camera protocol."""
 
-    start: Callable[["CameraProtocol"], Any]
-    stop: Callable[["CameraProtocol"], Any]
+    @property
+    def start(self):
+        ...
+
+    @property
+    def stop(self):
+        ...
 
 
 class NDArrayMediaCaptureSessionProtocol(Protocol):

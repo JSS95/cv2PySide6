@@ -1,5 +1,5 @@
 from itertools import chain
-from setuptools import setup, find_packages
+from setuptools import setup, find_packages  # type: ignore[import]
 
 
 VERSION_FILE = "cv2PySide6/version.py"
@@ -65,7 +65,7 @@ setup(
     url="https://github.com/JSS95/cv2PySide6",
     license="LGPL",
     packages=find_packages(),
-    package_data={"cv2PySide6": ["data/*", "examples/**/*"]},
+    package_data={"cv2PySide6": ["py.typed", "data/*", "examples/**/*"]},
     install_requires=read_requirements("requirements/install.txt"),
     extras_require=get_extras_require(),
 )
