@@ -47,7 +47,7 @@ jobs:
           pip install .[test]
 
       - name: run mypy check
-        run: mypy .
+        run: mypy cv2PySide6
 
 
   unit-test:
