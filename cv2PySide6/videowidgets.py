@@ -17,7 +17,6 @@ from .videoutil import (
     NDArrayMediaCaptureSession,
 )
 from .typing import (
-    ArrayProcessorProtocol,
     NDArrayVideoPlayerProtocol,
     NDArrayMediaCaptureSessionProtocol,
 )
@@ -129,11 +128,11 @@ class NDArrayVideoPlayerWidget(QWidget):
         self.videoPlayer().durationChanged.disconnect(self._durationConnection)
         self.videoPlayer().playbackStateChanged.disconnect(self._playConnect)
 
-    def arrayProcessor(self) -> ArrayProcessorProtocol:
+    def arrayProcessor(self) -> ArrayProcessor:
         """Process the array and provide to :meth:`videoLabel`."""
         return self._arrayProcessor
 
-    def setArrayProcessor(self, processor: ArrayProcessorProtocol):
+    def setArrayProcessor(self, processor: ArrayProcessor):
         """
         Change :meth:`arrayProcessor` and update signal connections.
         """
@@ -298,11 +297,11 @@ class NDArrayCameraWidget(QWidget):
     def disconnectMediaCaptureSession(self):
         self.mediaCaptureSession().arrayChanged.disconnect(self.__processConnection)
 
-    def arrayProcessor(self) -> ArrayProcessorProtocol:
+    def arrayProcessor(self) -> ArrayProcessor:
         """Process the array and provide to :meth:`videoLabel`."""
         return self._arrayProcessor
 
-    def setArrayProcessor(self, processor: ArrayProcessorProtocol):
+    def setArrayProcessor(self, processor: ArrayProcessor):
         """
         Change :meth:`arrayProcessor` and update signal connections.
         """

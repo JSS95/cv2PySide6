@@ -151,7 +151,7 @@ class ClickableSlider(QSlider):
             self.maximum(),
             int(p - sliderMin),
             sliderMax - sliderMin,
-            opt.upsideDown,
+            opt.upsideDown,  # type: ignore[attr-defined]
         )
 
 
