@@ -3,12 +3,15 @@ from PySide6.QtGui import Qt
 from PySide6.QtMultimedia import QMediaPlayer
 
 from cv2PySide6 import (
-    get_data_path, NDArrayVideoPlayerWidget,
-    ScalableQLabel, NDArrayVideoPlayer, NDArrayCameraWidget,
-    NDArrayMediaCaptureSession
+    get_data_path,
+    NDArrayVideoPlayerWidget,
+    ScalableQLabel,
+    NDArrayVideoPlayer,
+    NDArrayCameraWidget,
+    NDArrayMediaCaptureSession,
 )
 
-VID_PATH = get_data_path('hello.mp4')
+VID_PATH = get_data_path("hello.mp4")
 
 
 def test_NDArrayVideoPlayerWidget_openfile(qtbot):
@@ -53,8 +56,7 @@ def test_NDArrayVideoPlayerWidget_lastframe_displayed(qtbot):
     vpwidget.videoPlayer().setPlaybackRate(100)
     qtbot.mouseClick(vpwidget.playButton(), Qt.LeftButton)
     qtbot.waitUntil(
-        lambda: (vpwidget.videoPlayer().playbackState()
-                 != QMediaPlayer.PlayingState),
+        lambda: (vpwidget.videoPlayer().playbackState() != QMediaPlayer.PlayingState),
         timeout=10000,
     )
     assert not vpwidget.videoLabel().pixmap().toImage().isNull()

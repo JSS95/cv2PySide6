@@ -53,7 +53,6 @@ class CannyEdgeDetector(ArrayProcessor):
 
 
 class CannyVideoPlayerWidget(NDArrayVideoPlayerWidget):
-
     def __init__(self, parent=None):
         self._cannyButton = QPushButton()
         super().__init__(parent)
@@ -64,7 +63,7 @@ class CannyVideoPlayerWidget(NDArrayVideoPlayerWidget):
 
     def initUI(self):
         super().initUI()
-        self.cannyButton().setText('Toggle edge detection')
+        self.cannyButton().setText("Toggle edge detection")
         self.layout().addWidget(self.cannyButton())
 
     def cannyButton(self) -> QPushButton:
@@ -77,14 +76,14 @@ class CannyVideoPlayerWidget(NDArrayVideoPlayerWidget):
             self.arrayProcessor().refreshCurrentArray()  # type: ignore
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     from PySide6.QtWidgets import QApplication
     import sys
     from cv2PySide6 import get_data_path
 
     app = QApplication(sys.argv)
     widget = CannyVideoPlayerWidget()
-    url = QUrl.fromLocalFile(get_data_path('hello.mp4'))
+    url = QUrl.fromLocalFile(get_data_path("hello.mp4"))
     widget.videoPlayer().setSource(url)
     widget.show()
     app.exec()

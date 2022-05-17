@@ -9,13 +9,14 @@ class BlurringProcessor(ArrayProcessor):
     """
     Video pipeline component for Gaussian blurring on numpy array.
     """
+
     def processArray(self, array: NDArray) -> NDArray:
         array = super().processArray(array)
         ret = cv2.GaussianBlur(array, (0, 0), 25)
         return ret
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     from PySide6.QtWidgets import QApplication
     from PySide6.QtMultimedia import QMediaDevices, QCamera
     import sys
