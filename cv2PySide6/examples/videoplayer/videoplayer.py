@@ -1,12 +1,13 @@
 """Video player example with canny edge detection process."""
 
-import cv2  # type: ignore
+import cv2  # type: ignore[import]
+from cv2PySide6 import ArrayProcessor, NDArrayVideoPlayer, NDArrayLabel, MediaController
 import numpy as np
-from numpy.typing import NDArray
-from PySide6.QtCore import Slot, QUrl
-from PySide6.QtWidgets import QPushButton
+import numpy.typing as npt
+from PySide6.QtCore import Slot, Qt, QUrl
+from PySide6.QtGui import QCloseEvent
+from PySide6.QtWidgets import QWidget, QPushButton, QVBoxLayout
 from PySide6.QtMultimedia import QMediaPlayer
-from cv2PySide6 import ArrayProcessor, NDArrayVideoPlayerWidget
 
 
 class CannyEdgeDetector(ArrayProcessor):
@@ -19,7 +20,7 @@ class CannyEdgeDetector(ArrayProcessor):
         self._currentArray = np.empty((0, 0, 0))
         self._canny_mode = False
 
-    def currentArray(self) -> NDArray:
+    def currentArray(self) -> npt.NDArray[np.uint8]:
         """Last array passed to :meth:`setArray`."""
         return self._currentArray
 
@@ -32,11 +33,11 @@ class CannyEdgeDetector(ArrayProcessor):
         self._canny_mode = mode
 
     @Slot(np.ndarray)
-    def setArray(self, array: NDArray):
+    def setArray(self, array: npt.NDArray[np.uint8]):
         self._currentArray = array.copy()
         super().setArray(array)
 
-    def processArray(self, array: NDArray) -> NDArray:
+    def processArray(self, array: npt.NDArray[np.uint8]) -> npt.NDArray[np.uint8]:
         """Perform Canny edge detection."""
         array = super().processArray(array)
         if array.size > 0 and self.cannyMode():
@@ -52,34 +53,61 @@ class CannyEdgeDetector(ArrayProcessor):
         self.setArray(self.currentArray())
 
 
-class CannyVideoPlayerWidget(NDArrayVideoPlayerWidget):
+class CannyVideoPlayerWidget(QWidget):
     def __init__(self, parent=None):
-        self._cannyButton = QPushButton()
         super().__init__(parent)
 
-        self.setArrayProcessor(CannyEdgeDetector())
+        self._videoPlayer = NDArrayVideoPlayer(self)
+        self._arrayProcessor = CannyEdgeDetector()
+        self._videoLabel = NDArrayLabel()
+        self._videoController = MediaController()
+        self._cannyButton = QPushButton()
+
+        self.videoPlayer().arrayChanged.connect(self.arrayProcessor().setArray)
+        self.arrayProcessor().arrayChanged.connect(self.videoLabel().setArray)
+        self.videoLabel().setAlignment(Qt.AlignCenter)
+        self.videoController().setPlayer(self.videoPlayer())
         self.cannyButton().setCheckable(True)
         self.cannyButton().toggled.connect(self.onCannyButtonToggle)
 
-    def initUI(self):
-        super().initUI()
         self.cannyButton().setText("Toggle edge detection")
-        self.layout().addWidget(self.cannyButton())
+
+        layout = QVBoxLayout()
+        layout.addWidget(self.videoLabel())
+        layout.addWidget(self.videoController())
+        layout.addWidget(self.cannyButton())
+        self.setLayout(layout)
+
+    def videoPlayer(self) -> NDArrayVideoPlayer:
+        return self._videoPlayer
+
+    def arrayProcessor(self) -> ArrayProcessor:
+        return self._arrayProcessor
+
+    def videoLabel(self) -> NDArrayLabel:
+        return self._videoLabel
+
+    def videoController(self) -> MediaController:
+        return self._videoController
 
     def cannyButton(self) -> QPushButton:
         return self._cannyButton
 
     @Slot(bool)
     def onCannyButtonToggle(self, state: bool):
-        self.arrayProcessor().setCannyMode(state)  # type: ignore
+        self.arrayProcessor().setCannyMode(state)
         if self.videoPlayer().playbackState() != QMediaPlayer.PlayingState:
-            self.arrayProcessor().refreshCurrentArray()  # type: ignore
+            self.arrayProcessor().refreshCurrentArray()
+
+    def closeEvent(self, event: QCloseEvent):
+        self.videoPlayer().stop()
+        event.accept()
 
 
 if __name__ == "__main__":
+    from cv2PySide6 import get_data_path
     from PySide6.QtWidgets import QApplication
     import sys
-    from cv2PySide6 import get_data_path
 
     app = QApplication(sys.argv)
     widget = CannyVideoPlayerWidget()
