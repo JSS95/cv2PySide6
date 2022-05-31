@@ -47,40 +47,6 @@ def test_MediaController_playpausestop(qtbot):
         qtbot.mouseClick(controller.stopButton(), Qt.LeftButton)
 
 
-def test_MediaController_pausedBySliderPress(qtbot):
-    controller = MediaController()
-    player = QMediaPlayer()
-    controller.setPlayer(player)
-    player.setLoops(QMediaPlayer.Infinite)
-    player.setSource(QUrl.fromLocalFile(VID_PATH))
-
-    qtbot.mousePress(controller.slider(), Qt.LeftButton, pos=QPoint(10, 10))
-    assert player.playbackState() == QMediaPlayer.StoppedState
-    qtbot.mouseRelease(controller.slider(), Qt.LeftButton)
-    assert player.playbackState() == QMediaPlayer.StoppedState
-
-    player.play()
-    with qtbot.waitSignal(
-        player.playbackStateChanged,
-        check_params_cb=lambda state: state == QMediaPlayer.PausedState,
-        timeout=None,
-    ):
-        qtbot.mousePress(controller.slider(), Qt.LeftButton, pos=QPoint(20, 20))
-
-    with qtbot.waitSignal(
-        player.playbackStateChanged,
-        check_params_cb=lambda state: state == QMediaPlayer.PlayingState,
-        timeout=None,
-    ):
-        qtbot.mouseRelease(controller.slider(), Qt.LeftButton)
-
-    player.pause()
-    qtbot.mousePress(controller.slider(), Qt.LeftButton, pos=QPoint(10, 10))
-    assert player.playbackState() == QMediaPlayer.PausedState
-    qtbot.mouseRelease(controller.slider(), Qt.LeftButton)
-    assert player.playbackState() == QMediaPlayer.PausedState
-
-
 def test_MediaController_slider_range(qtbot):
     controller = MediaController()
     player = QMediaPlayer()
