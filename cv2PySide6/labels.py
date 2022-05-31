@@ -8,7 +8,7 @@ from PySide6.QtCore import Qt, Slot
 from PySide6.QtGui import QPixmap
 from PySide6.QtWidgets import QLabel, QSizePolicy
 
-from qimage2ndarray import array2qimage  # type: ignore
+from qimage2ndarray import array2qimage  # type: ignore[import]
 
 __all__ = [
     "ScalableQLabel",

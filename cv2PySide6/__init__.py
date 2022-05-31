@@ -7,7 +7,12 @@ from .videostream import (
     NDArrayVideoPlayer,
     NDArrayMediaCaptureSession,
 )
-from .videowidgets import ClickableSlider, NDArrayVideoPlayerWidget, NDArrayCameraWidget
+from .videowidgets import (
+    ClickableSlider,
+    VideoController,
+    NDArrayVideoPlayerWidget,
+    NDArrayCameraWidget,
+)
 from .util import get_data_path
 
 
@@ -17,6 +22,7 @@ __all__ = [
     "ArrayProcessor",
     "FrameToArrayConverter",
     "ClickableSlider",
+    "VideoController",
     "NDArrayVideoPlayer",
     "NDArrayMediaCaptureSession",
     "NDArrayVideoPlayerWidget",

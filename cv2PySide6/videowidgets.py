@@ -16,6 +16,7 @@ from PySide6.QtWidgets import (
     QPushButton,
 )
 from PySide6.QtMultimedia import QMediaPlayer
+from typing import Optional
 from .labels import NDArrayLabel
 from .videostream import ArrayProcessor, NDArrayVideoPlayer, NDArrayMediaCaptureSession
 from .typing import NDArrayVideoPlayerProtocol, NDArrayMediaCaptureSessionProtocol
@@ -23,6 +24,7 @@ from .typing import NDArrayVideoPlayerProtocol, NDArrayMediaCaptureSessionProtoc
 
 __all__ = [
     "ClickableSlider",
+    "VideoController",
     "NDArrayVideoPlayerWidget",
     "NDArrayCameraWidget",
 ]
@@ -63,8 +65,118 @@ class ClickableSlider(QSlider):
             self.maximum(),
             int(p - sliderMin),
             sliderMax - sliderMin,
-            opt.upsideDown,  # type: ignore[attr-defined]
+            opt.upsideDown,
         )
+
+
+class VideoController(QWidget):
+    def __init__(self, parent=None):
+        super().__init__(parent)
+
+        self._slider = ClickableSlider()
+        self._playButton = QPushButton()
+        self._stopButton = QPushButton()
+        self._player = None
+        self._pausedBySliderPress = False
+
+        self.playButton().clicked.connect(self.onPlayButtonClicked)
+        self.stopButton().clicked.connect(self.onStopButtonClicked)
+        self.slider().sliderPressed.connect(self.onSliderPress)
+        self.slider().sliderMoved.connect(self.onSliderMove)
+        self.slider().sliderReleased.connect(self.onSliderRelease)
+
+        layout = QHBoxLayout()
+        play_icon = self.style().standardIcon(QStyle.SP_MediaPlay)
+        self.playButton().setIcon(play_icon)
+        layout.addWidget(self.playButton())
+        stop_icon = self.style().standardIcon(QStyle.SP_MediaStop)
+        self.stopButton().setIcon(stop_icon)
+        layout.addWidget(self.stopButton())
+        self.slider().setOrientation(Qt.Horizontal)
+        layout.addWidget(self.slider())
+        self.setLayout(layout)
+
+    def slider(self) -> ClickableSlider:
+        return self._slider
+
+    def playButton(self) -> QPushButton:
+        return self._playButton
+
+    def stopButton(self) -> QPushButton:
+        return self._stopButton
+
+    def player(self) -> Optional[QMediaPlayer]:
+        return self._player
+
+    @Slot()
+    def onPlayButtonClicked(self):
+        if self.player() is not None:
+            if self.player().playbackState() == QMediaPlayer.PlayingState:
+                self.player().pause()
+            else:
+                self.player().play()
+
+    @Slot()
+    def onStopButtonClicked(self):
+        if self.player() is not None:
+            self.player().stop()
+
+    @Slot()
+    def onSliderPress(self):
+        if (
+            self.player() is not None
+            and self.player().playbackState() == QMediaPlayer.PlayingState
+        ):
+            self._pausedBySliderPress = True
+            self.player().pause()
+            self.player().setPosition(self.slider().value())
+
+    @Slot(int)
+    def onSliderMove(self, position: int):
+        player = self.player()
+        if player is not None:
+            player.setPosition(position)
+
+    @Slot()
+    def onSliderRelease(self):
+        if self.player() is not None and self._pausedBySliderPress:
+            self.player().play()
+            self._pausedBySliderPress = False
+
+    def setPlayer(self, player: Optional[QMediaPlayer]):
+        old_player = self.player()
+        if old_player is not None:
+            self.disconnectPlayer(old_player)
+        self._player = player
+        if player is not None:
+            self.connectPlayer(player)
+
+    def connectPlayer(self, player: QMediaPlayer):
+        player.durationChanged.connect(self.onMediaDurationChange)
+        player.playbackStateChanged.connect(self.onPlaybackStateChange)
+        player.positionChanged.connect(self.onMediaPositionChange)
+
+    def disconnectPlayer(self, player: QMediaPlayer):
+        player.durationChanged.disconnect(self.onMediaDurationChange)
+        player.playbackStateChanged.disconnect(self.onPlaybackStateChange)
+        player.positionChanged.disconnect(self.onMediaPositionChange)
+
+    @Slot(int)
+    def onMediaDurationChange(self, duration: int):
+        self.slider().setRange(0, duration)
+
+    @Slot(QMediaPlayer.PlaybackState)
+    def onPlaybackStateChange(self, state: QMediaPlayer.PlaybackState):
+        if state == QMediaPlayer.PlayingState:
+            pause_icon = self.style().standardIcon(QStyle.SP_MediaPause)
+            self.playButton().setIcon(pause_icon)
+        else:
+            play_icon = self.style().standardIcon(QStyle.SP_MediaPlay)
+            self.playButton().setIcon(play_icon)
+
+    @Slot(int)
+    def onMediaPositionChange(self, position: int):
+        self.slider().setValue(position)
 
 
 class NDArrayVideoPlayerWidget(QWidget):
