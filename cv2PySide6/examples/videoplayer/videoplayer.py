@@ -81,7 +81,7 @@ class CannyVideoPlayerWidget(QWidget):
     def videoPlayer(self) -> NDArrayVideoPlayer:
         return self._videoPlayer
 
-    def arrayProcessor(self) -> ArrayProcessor:
+    def arrayProcessor(self) -> CannyEdgeDetector:
         return self._arrayProcessor
 
     def videoLabel(self) -> NDArrayLabel:
