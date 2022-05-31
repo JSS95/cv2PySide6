@@ -4,11 +4,10 @@ from .labels import ScalableQLabel, NDArrayLabel
 from .videostream import (
     ArrayProcessor,
     FrameToArrayConverter,
-    ClickableSlider,
     NDArrayVideoPlayer,
     NDArrayMediaCaptureSession,
 )
-from .videowidgets import NDArrayVideoPlayerWidget, NDArrayCameraWidget
+from .videowidgets import ClickableSlider, NDArrayVideoPlayerWidget, NDArrayCameraWidget
 from .util import get_data_path
 
 

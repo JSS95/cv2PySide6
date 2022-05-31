@@ -4,28 +4,67 @@ Widgets to play video stream.
 
 import numpy as np
 from numpy.typing import NDArray
-from PySide6.QtCore import Qt, Slot
-from PySide6.QtGui import QCloseEvent
-from PySide6.QtWidgets import QWidget, QVBoxLayout, QHBoxLayout, QStyle, QPushButton
+from PySide6.QtCore import Qt, QPointF, Slot
+from PySide6.QtGui import QMouseEvent, QCloseEvent
+from PySide6.QtWidgets import (
+    QSlider,
+    QStyleOptionSlider,
+    QWidget,
+    QVBoxLayout,
+    QHBoxLayout,
+    QStyle,
+    QPushButton,
+)
 from PySide6.QtMultimedia import QMediaPlayer
-
 from .labels import NDArrayLabel
-from .videostream import (
-    ClickableSlider,
-    ArrayProcessor,
-    NDArrayVideoPlayer,
-    NDArrayMediaCaptureSession,
-)
-from .typing import (
-    NDArrayVideoPlayerProtocol,
-    NDArrayMediaCaptureSessionProtocol,
-)
+from .videostream import ArrayProcessor, NDArrayVideoPlayer, NDArrayMediaCaptureSession
+from .typing import NDArrayVideoPlayerProtocol, NDArrayMediaCaptureSessionProtocol
 
 
 __all__ = [
+    "ClickableSlider",
     "NDArrayVideoPlayerWidget",
     "NDArrayCameraWidget",
 ]
+
+
+class ClickableSlider(QSlider):
+    """``QSlider`` whose groove can be clicked to move to position."""
+
+    # https://stackoverflow.com/questions/52689047
+    def mousePressEvent(self, event: QMouseEvent):
+        if event.button() == Qt.LeftButton:
+            val = self.pixelPosToRangeValue(event.position())
+            self.setValue(val)
+        super().mousePressEvent(event)
+
+    def pixelPosToRangeValue(self, pos: QPointF) -> int:
+        opt = QStyleOptionSlider()
+        self.initStyleOption(opt)
+        gr = self.style().subControlRect(
+            QStyle.CC_Slider, opt, QStyle.SC_SliderGroove, self
+        )
+        sr = self.style().subControlRect(
+            QStyle.CC_Slider, opt, QStyle.SC_SliderHandle, self
+        )
+
+        if self.orientation() == Qt.Horizontal:
+            sliderLength = sr.width()
+            sliderMin = gr.x()
+            sliderMax = gr.right() - sliderLength + 1
+        else:
+            sliderLength = sr.height()
+            sliderMin = gr.y()
+            sliderMax = gr.bottom() - sliderLength + 1
+        pr = pos - sr.center() + sr.topLeft()
+        p = pr.x() if self.orientation() == Qt.Horizontal else pr.y()
+        return QStyle.sliderValueFromPosition(
+            self.minimum(),
+            self.maximum(),
+            int(p - sliderMin),
+            sliderMax - sliderMin,
+            opt.upsideDown,  # type: ignore[attr-defined]
+        )
 
 
 class NDArrayVideoPlayerWidget(QWidget):
