@@ -65,7 +65,7 @@ class ClickableSlider(QSlider):
             self.maximum(),
             int(p - sliderMin),
             sliderMax - sliderMin,
-            opt.upsideDown,
+            opt.upsideDown,  # type: ignore[attr-defined]
         )
 
 
@@ -152,14 +152,26 @@ class VideoController(QWidget):
             self.connectPlayer(player)
 
     def connectPlayer(self, player: QMediaPlayer):
-        player.durationChanged.connect(self.onMediaDurationChange)
-        player.playbackStateChanged.connect(self.onPlaybackStateChange)
-        player.positionChanged.connect(self.onMediaPositionChange)
+        player.durationChanged.connect(  # type: ignore[attr-defined]
+            self.onMediaDurationChange
+        )
+        player.playbackStateChanged.connect(  # type: ignore[attr-defined]
+            self.onPlaybackStateChange
+        )
+        player.positionChanged.connect(  # type: ignore[attr-defined]
+            self.onMediaPositionChange
+        )
 
     def disconnectPlayer(self, player: QMediaPlayer):
-        player.durationChanged.disconnect(self.onMediaDurationChange)
-        player.playbackStateChanged.disconnect(self.onPlaybackStateChange)
-        player.positionChanged.disconnect(self.onMediaPositionChange)
+        player.durationChanged.disconnect(  # type: ignore[attr-defined]
+            self.onMediaDurationChange
+        )
+        player.playbackStateChanged.disconnect(  # type: ignore[attr-defined]
+            self.onPlaybackStateChange
+        )
+        player.positionChanged.disconnect(  # type: ignore[attr-defined]
+            self.onMediaPositionChange
+        )
 
     @Slot(int)
     def onMediaDurationChange(self, duration: int):
