@@ -24,7 +24,7 @@ from .typing import NDArrayVideoPlayerProtocol, NDArrayMediaCaptureSessionProtoc
 
 __all__ = [
     "ClickableSlider",
-    "VideoController",
+    "MediaController",
     "NDArrayVideoPlayerWidget",
     "NDArrayCameraWidget",
 ]
@@ -69,7 +69,15 @@ class ClickableSlider(QSlider):
         )
 
 
-class VideoController(QWidget):
+class MediaController(QWidget):
+    """
+    Widget to control :class:`QMediaPlayer`.
+
+    This controller can change the playback state and media position by
+    :meth:`playButton`, :meth:`stopButton`, and :meth:`slider`.
+    Pass :class:`QMediaPlayer` to :meth:`setPlayer` to control it by this widget.
+
+    """
     def __init__(self, parent=None):
         super().__init__(parent)
 
@@ -97,19 +105,24 @@ class VideoController(QWidget):
         self.setLayout(layout)
 
     def slider(self) -> ClickableSlider:
+        """Slider to change the media position."""
         return self._slider
 
     def playButton(self) -> QPushButton:
+        """Button to play and pause the media."""
         return self._playButton
 
     def stopButton(self) -> QPushButton:
+        """Button to stop the media."""
         return self._stopButton
 
     def player(self) -> Optional[QMediaPlayer]:
+        """Media player which is controlled by *self*."""
         return self._player
 
     @Slot()
     def onPlayButtonClicked(self):
+        """Play or pause :meth:`player`."""
         if self.player() is not None:
             if self.player().playbackState() == QMediaPlayer.PlayingState:
                 self.player().pause()
@@ -118,11 +131,13 @@ class VideoController(QWidget):
 
     @Slot()
     def onStopButtonClicked(self):
+        """Stop :meth:`player`."""
         if self.player() is not None:
             self.player().stop()
 
     @Slot()
     def onSliderPress(self):
+        """If the media was playing, pause and move to the pressed position."""
         if (
             self.player() is not None
             and self.player().playbackState() == QMediaPlayer.PlayingState
@@ -133,17 +148,20 @@ class VideoController(QWidget):
 
     @Slot(int)
     def onSliderMove(self, position: int):
+        """Move the media to current slider position."""
         player = self.player()
         if player is not None:
             player.setPosition(position)
 
     @Slot()
     def onSliderRelease(self):
+        """If the media was paused by slider press, play the media."""
         if self.player() is not None and self._pausedBySliderPress:
             self.player().play()
             self._pausedBySliderPress = False
 
     def setPlayer(self, player: Optional[QMediaPlayer]):
+        """Set :meth:`player` and connect the signals."""
         old_player = self.player()
         if old_player is not None:
             self.disconnectPlayer(old_player)
@@ -152,6 +170,7 @@ class VideoController(QWidget):
             self.connectPlayer(player)
 
     def connectPlayer(self, player: QMediaPlayer):
+        """Connect signals and slots with *player*."""
         player.durationChanged.connect(  # type: ignore[attr-defined]
             self.onMediaDurationChange
         )
@@ -163,6 +182,7 @@ class VideoController(QWidget):
         )
 
     def disconnectPlayer(self, player: QMediaPlayer):
+        """Disconnect signals and slots with *player*."""
         player.durationChanged.disconnect(  # type: ignore[attr-defined]
             self.onMediaDurationChange
         )
@@ -175,10 +195,12 @@ class VideoController(QWidget):
 
     @Slot(int)
     def onMediaDurationChange(self, duration: int):
+        """Set the slider range to media duration."""
         self.slider().setRange(0, duration)
 
     @Slot(QMediaPlayer.PlaybackState)
     def onPlaybackStateChange(self, state: QMediaPlayer.PlaybackState):
+        """Switch the play icon and pause icon by *state*."""
         if state == QMediaPlayer.PlayingState:
             pause_icon = self.style().standardIcon(QStyle.SP_MediaPause)
             self.playButton().setIcon(pause_icon)
@@ -188,6 +210,7 @@ class VideoController(QWidget):
 
     @Slot(int)
     def onMediaPositionChange(self, position: int):
+        """Update the slider position to media position."""
         self.slider().setValue(position)
 
 
@@ -220,7 +243,7 @@ class NDArrayVideoPlayerWidget(QWidget):
         self._videoPlayer = NDArrayVideoPlayer(self)
         self._arrayProcessor = ArrayProcessor()
         self._videoLabel = NDArrayLabel()
-        self._videoController = VideoController()
+        self._videoController = MediaController()
 
         self.videoPlayer().arrayChanged.connect(self.arrayProcessor().setArray)
         self.arrayProcessor().arrayChanged.connect(self.videoLabel().setArray)
@@ -244,7 +267,7 @@ class NDArrayVideoPlayerWidget(QWidget):
         """Label to display video image."""
         return self._videoLabel
 
-    def videoController(self) -> VideoController:
+    def videoController(self) -> MediaController:
         """Widget to control :meth:`videoPlayer`."""
         return self._videoController
 
