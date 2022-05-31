@@ -1,13 +1,11 @@
 import cv2  # type: ignore[import]
 from cv2PySide6 import (
     FrameToArrayConverter,
-    ClickableSlider,
     NDArrayVideoPlayer,
     get_data_path,
 )
 import numpy as np
-from PySide6.QtCore import QPoint, QUrl
-from PySide6.QtGui import Qt
+from PySide6.QtCore import QUrl
 import pytest
 from qimage2ndarray import byte_view, gray2qimage, array2qimage  # type: ignore[import]
 
@@ -26,18 +24,6 @@ def test_FrameToArrayConverter(qtbot):
 
     conv.setConverter(byte_view)
     assert np.all(conv.convertQImageToArray(gray_img) == gray_array[..., np.newaxis])
-
-
-def test_ClickableSlider(qtbot):
-    slider = ClickableSlider()
-    qtbot.addWidget(slider)
-
-    assert slider.value() == 0
-
-    pos = QPoint(10, 10)
-    qtbot.mouseClick(slider, Qt.LeftButton, pos=pos)
-
-    assert slider.value() == slider.pixelPosToRangeValue(pos)
 
 
 def test_NDArrayVideoPlayer(qtbot):
