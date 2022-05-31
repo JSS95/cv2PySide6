@@ -1,7 +1,7 @@
 from .version import __version__  # noqa
 
 from .labels import ScalableQLabel, NDArrayLabel
-from .videoutil import (
+from .videostream import (
     ArrayProcessor,
     FrameToArrayConverter,
     ClickableSlider,

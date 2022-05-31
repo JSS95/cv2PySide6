@@ -10,7 +10,7 @@ from PySide6.QtWidgets import QWidget, QVBoxLayout, QHBoxLayout, QStyle, QPushBu
 from PySide6.QtMultimedia import QMediaPlayer
 
 from .labels import NDArrayLabel
-from .videoutil import (
+from .videostream import (
     ClickableSlider,
     ArrayProcessor,
     NDArrayVideoPlayer,
