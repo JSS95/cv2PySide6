@@ -1,16 +1,15 @@
-import cv2  # type: ignore
-import numpy as np
-from PySide6.QtCore import QPoint, QUrl
-from PySide6.QtGui import Qt
-import pytest
-from qimage2ndarray import byte_view, gray2qimage, array2qimage  # type: ignore
-
+import cv2  # type: ignore[import]
 from cv2PySide6 import (
     FrameToArrayConverter,
     ClickableSlider,
     NDArrayVideoPlayer,
     get_data_path,
 )
+import numpy as np
+from PySide6.QtCore import QPoint, QUrl
+from PySide6.QtGui import Qt
+import pytest
+from qimage2ndarray import byte_view, gray2qimage, array2qimage  # type: ignore[import]
 
 
 def test_FrameToArrayConverter(qtbot):

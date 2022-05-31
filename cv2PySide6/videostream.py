@@ -12,7 +12,7 @@ from PySide6.QtMultimedia import (
     QVideoSink,
     QMediaCaptureSession,
 )
-from qimage2ndarray import rgb_view  # type: ignore
+from qimage2ndarray import rgb_view  # type: ignore[import]
 from typing import Callable
 
 
