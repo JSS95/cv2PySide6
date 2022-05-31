@@ -78,6 +78,7 @@ class MediaController(QWidget):
     Pass :class:`QMediaPlayer` to :meth:`setPlayer` to control it by this widget.
 
     """
+
     def __init__(self, parent=None):
         super().__init__(parent)
 
