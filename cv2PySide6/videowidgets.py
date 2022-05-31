@@ -145,7 +145,7 @@ class MediaController(QWidget):
         ):
             self._pausedBySliderPress = True
             self.player().pause()
-            self.player().setPosition(self.slider().value())
+        self.player().setPosition(self.slider().value())
 
     @Slot(int)
     def onSliderMove(self, position: int):
@@ -232,7 +232,6 @@ class NDArrayVideoPlayerWidget(QWidget):
     ...     w = NDArrayVideoPlayerWidget()
     ...     w.videoPlayer().setSource(QUrl.fromLocalFile(vidpath))
     ...     w.show()
-    ...     w.videoPlayer().play()
     ...     app.exec()
     ...     app.quit()
     >>> runGUI() # doctest: +SKIP
