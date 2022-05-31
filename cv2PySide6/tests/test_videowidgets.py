@@ -63,12 +63,14 @@ def test_MediaController_pausedBySliderPress(qtbot):
     with qtbot.waitSignal(
         player.playbackStateChanged,
         check_params_cb=lambda state: state == QMediaPlayer.PausedState,
+        timeout=None,
     ):
         qtbot.mousePress(controller.slider(), Qt.LeftButton, pos=QPoint(20, 20))
 
     with qtbot.waitSignal(
         player.playbackStateChanged,
         check_params_cb=lambda state: state == QMediaPlayer.PlayingState,
+        timeout=None,
     ):
         qtbot.mouseRelease(controller.slider(), Qt.LeftButton)
 
