@@ -1,72 +1,69 @@
-from PySide6.QtCore import QUrl
-from PySide6.QtGui import Qt
-from PySide6.QtMultimedia import QMediaPlayer
-
 from cv2PySide6 import (
     get_data_path,
+    ClickableSlider,
+    MediaController,
     NDArrayVideoPlayerWidget,
-    ScalableQLabel,
-    NDArrayVideoPlayer,
-    NDArrayCameraWidget,
-    NDArrayMediaCaptureSession,
 )
+from PySide6.QtCore import Qt, QPoint, QUrl
+from PySide6.QtMultimedia import QMediaPlayer
+
 
 VID_PATH = get_data_path("hello.mp4")
 
 
-def test_NDArrayVideoPlayerWidget_openfile(qtbot):
-    vpwidget = NDArrayVideoPlayerWidget()
-    vpwidget.videoLabel().setPixmapScaleMode(ScalableQLabel.PM_NoScale)
-    vpwidget.videoPlayer().setSource(QUrl.fromLocalFile(VID_PATH))
+def test_ClickableSlider(qtbot):
+    slider = ClickableSlider()
+    qtbot.addWidget(slider)
+    assert slider.value() == 0
 
-    # opening the video does not play it
-    assert vpwidget.videoPlayer().playbackState() == QMediaPlayer.StoppedState
+    pos = QPoint(10, 10)
+    qtbot.mouseClick(slider, Qt.LeftButton, pos=pos)
+    assert slider.value() == slider.pixelPosToRangeValue(pos)
 
 
-def test_NDArrayVideoPlayerWidget_playback(qtbot):
-    """
-    Test button click plays video, and player stops when video ends.
-    """
-    vpwidget = NDArrayVideoPlayerWidget()
-    vpwidget.videoLabel().setPixmapScaleMode(ScalableQLabel.PM_NoScale)
-    vpwidget.videoPlayer().setSource(QUrl.fromLocalFile(VID_PATH))
+def test_MediaController_playpausestop(qtbot):
+    controller = MediaController()
+    player = QMediaPlayer()
+    controller.setPlayer(player)
+    player.setLoops(QMediaPlayer.Infinite)
+    player.setSource(QUrl.fromLocalFile(VID_PATH))
 
-    vpwidget.videoPlayer().setPlaybackRate(100)
-    with qtbot.waitSignals(
-        [
-            vpwidget.videoPlayer().playbackStateChanged,
-            vpwidget.videoPlayer().playbackStateChanged,
-            vpwidget.videoPlayer().mediaStatusChanged,
-        ],
-        check_params_cbs=[
-            lambda state: state == QMediaPlayer.PlayingState,
-            lambda state: state == QMediaPlayer.StoppedState,
-            lambda status: status == QMediaPlayer.EndOfMedia,
-        ],
-        timeout=10000,
+    with qtbot.waitSignal(
+        player.playbackStateChanged,
+        check_params_cb=lambda state: state == QMediaPlayer.PlayingState,
     ):
-        qtbot.mouseClick(vpwidget.playButton(), Qt.LeftButton)
+        qtbot.mouseClick(controller.playButton(), Qt.LeftButton)
+
+    with qtbot.waitSignal(
+        player.playbackStateChanged,
+        check_params_cb=lambda state: state == QMediaPlayer.PausedState,
+    ):
+        qtbot.mouseClick(controller.playButton(), Qt.LeftButton)
+
+    with qtbot.waitSignal(
+        player.playbackStateChanged,
+        check_params_cb=lambda state: state == QMediaPlayer.StoppedState,
+    ):
+        qtbot.mouseClick(controller.stopButton(), Qt.LeftButton)
 
 
-def test_NDArrayVideoPlayerWidget_lastframe_displayed(qtbot):
-    """Test that last frame remains on the label after video ends."""
+def test_MediaController_slider_range(qtbot):
+    controller = MediaController()
+    player = QMediaPlayer()
+    controller.setPlayer(player)
+
+    with qtbot.waitSignal(controller.slider().rangeChanged):
+        player.setSource(QUrl.fromLocalFile(VID_PATH))
+
+
+def test_NDArrayVideoPlayerWidget(qtbot):
     vpwidget = NDArrayVideoPlayerWidget()
-    vpwidget.videoLabel().setPixmapScaleMode(ScalableQLabel.PM_NoScale)
     vpwidget.videoPlayer().setSource(QUrl.fromLocalFile(VID_PATH))
     vpwidget.videoPlayer().setPlaybackRate(100)
-    qtbot.mouseClick(vpwidget.playButton(), Qt.LeftButton)
-    qtbot.waitUntil(
-        lambda: (vpwidget.videoPlayer().playbackState() != QMediaPlayer.PlayingState),
-        timeout=10000,
-    )
-    assert not vpwidget.videoLabel().pixmap().toImage().isNull()
-
-
-def test_NDArrayVideoPlayerWidget_setVideoPlayer(qtbot):
-    widget = NDArrayVideoPlayerWidget()
-    widget.setVideoPlayer(NDArrayVideoPlayer(widget))
-
-
-def test_NDArrayCameraWidget_setMediaCaptureSession(qtbot):
-    widget = NDArrayCameraWidget()
-    widget.setMediaCaptureSession(NDArrayMediaCaptureSession())
+    with qtbot.waitSignal(
+        vpwidget.videoPlayer().playbackStateChanged,
+        check_params_cb=lambda state: state == QMediaPlayer.StoppedState,
+        timeout=None,
+    ):
+        qtbot.mouseClick(vpwidget.videoController().playButton(), Qt.LeftButton)
+    assert not vpwidget.videoLabel().pixmap().isNull()

@@ -1,10 +1,10 @@
-import cv2  # type: ignore
+import cv2  # type: ignore[import]
+from cv2PySide6 import ScalableQLabel, NDArrayLabel, get_data_path
 import numpy as np
 from PySide6.QtCore import QSize
 from PySide6.QtGui import QPixmap
-from qimage2ndarray import array2qimage  # type: ignore
+from qimage2ndarray import array2qimage  # type: ignore[import]
 
-from cv2PySide6 import ScalableQLabel, NDArrayLabel, get_data_path
 
 IMG_PATH = get_data_path("hello.jpg")
 
