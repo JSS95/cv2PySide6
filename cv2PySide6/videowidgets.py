@@ -19,7 +19,7 @@ from PySide6.QtMultimedia import QMediaPlayer
 from typing import Optional
 from .labels import NDArrayLabel
 from .videostream import ArrayProcessor, NDArrayVideoPlayer, NDArrayMediaCaptureSession
-from .typing import NDArrayVideoPlayerProtocol, NDArrayMediaCaptureSessionProtocol
+from .typing import NDArrayMediaCaptureSessionProtocol
 
 
 __all__ = [
@@ -255,7 +255,7 @@ class NDArrayVideoPlayerWidget(QWidget):
         layout.addWidget(self.videoController())
         self.setLayout(layout)
 
-    def videoPlayer(self) -> NDArrayVideoPlayerProtocol:
+    def videoPlayer(self) -> NDArrayVideoPlayer:
         """Object to emit video frames as numy arrays."""
         return self._videoPlayer
 
