@@ -54,22 +54,26 @@ def test_MediaController_pausedBySliderPress(qtbot):
     player.setLoops(QMediaPlayer.Infinite)
     player.setSource(QUrl.fromLocalFile(VID_PATH))
 
-    pos = QPoint(10, 10)
-    qtbot.mousePress(controller.slider(), Qt.LeftButton, pos=pos)
+    qtbot.mousePress(controller.slider(), Qt.LeftButton, pos=QPoint(10, 10))
     assert player.playbackState() == QMediaPlayer.StoppedState
     qtbot.mouseRelease(controller.slider(), Qt.LeftButton)
     assert player.playbackState() == QMediaPlayer.StoppedState
 
     player.play()
-    pos = QPoint(20, 20)
-    qtbot.mousePress(controller.slider(), Qt.LeftButton, pos=pos)
-    assert player.playbackState() == QMediaPlayer.PausedState
-    qtbot.mouseRelease(controller.slider(), Qt.LeftButton)
-    assert player.playbackState() == QMediaPlayer.PlayingState
+    with qtbot.waitSignal(
+        player.playbackStateChanged,
+        check_params_cb=lambda state: state == QMediaPlayer.PausedState,
+    ):
+        qtbot.mousePress(controller.slider(), Qt.LeftButton, pos=QPoint(20, 20))
+
+    with qtbot.waitSignal(
+        player.playbackStateChanged,
+        check_params_cb=lambda state: state == QMediaPlayer.PlayingState,
+    ):
+        qtbot.mouseRelease(controller.slider(), Qt.LeftButton)
 
     player.pause()
-    pos = QPoint(10, 10)
-    qtbot.mousePress(controller.slider(), Qt.LeftButton, pos=pos)
+    qtbot.mousePress(controller.slider(), Qt.LeftButton, pos=QPoint(10, 10))
     assert player.playbackState() == QMediaPlayer.PausedState
     qtbot.mouseRelease(controller.slider(), Qt.LeftButton)
     assert player.playbackState() == QMediaPlayer.PausedState
