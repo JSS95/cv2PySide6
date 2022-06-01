@@ -1,11 +1,11 @@
 from cv2PySide6 import (
     get_data_path,
     ClickableSlider,
-    MediaController,
+    VideoController,
+    NDArrayVideoPlayer,
     NDArrayVideoPlayerWidget,
 )
 from PySide6.QtCore import Qt, QPoint, QUrl
-from PySide6.QtMultimedia import QMediaPlayer
 
 
 VID_PATH = get_data_path("hello.mp4")
@@ -21,35 +21,35 @@ def test_ClickableSlider(qtbot):
     assert slider.value() == slider.pixelPosToRangeValue(pos)
 
 
-def test_MediaController_playpausestop(qtbot):
-    controller = MediaController()
-    player = QMediaPlayer()
+def test_VideoController_playpausestop(qtbot):
+    controller = VideoController()
+    player = NDArrayVideoPlayer()
     controller.setPlayer(player)
-    player.setLoops(QMediaPlayer.Infinite)
+    player.setLoops(NDArrayVideoPlayer.Infinite)
     player.setSource(QUrl.fromLocalFile(VID_PATH))
 
     with qtbot.waitSignal(
         player.playbackStateChanged,
-        check_params_cb=lambda state: state == QMediaPlayer.PlayingState,
+        check_params_cb=lambda state: state == NDArrayVideoPlayer.PlayingState,
     ):
         qtbot.mouseClick(controller.playButton(), Qt.LeftButton)
 
     with qtbot.waitSignal(
         player.playbackStateChanged,
-        check_params_cb=lambda state: state == QMediaPlayer.PausedState,
+        check_params_cb=lambda state: state == NDArrayVideoPlayer.PausedState,
     ):
         qtbot.mouseClick(controller.playButton(), Qt.LeftButton)
 
     with qtbot.waitSignal(
         player.playbackStateChanged,
-        check_params_cb=lambda state: state == QMediaPlayer.StoppedState,
+        check_params_cb=lambda state: state == NDArrayVideoPlayer.StoppedState,
     ):
         qtbot.mouseClick(controller.stopButton(), Qt.LeftButton)
 
 
-def test_MediaController_slider_range(qtbot):
-    controller = MediaController()
-    player = QMediaPlayer()
+def test_VideoController_slider_range(qtbot):
+    controller = VideoController()
+    player = NDArrayVideoPlayer()
     controller.setPlayer(player)
 
     with qtbot.waitSignal(controller.slider().rangeChanged):
@@ -62,7 +62,7 @@ def test_NDArrayVideoPlayerWidget(qtbot):
     vpwidget.videoPlayer().setPlaybackRate(100)
     with qtbot.waitSignal(
         vpwidget.videoPlayer().playbackStateChanged,
-        check_params_cb=lambda state: state == QMediaPlayer.StoppedState,
+        check_params_cb=lambda state: state == NDArrayVideoPlayer.StoppedState,
         timeout=None,
     ):
         qtbot.mouseClick(vpwidget.videoController().playButton(), Qt.LeftButton)

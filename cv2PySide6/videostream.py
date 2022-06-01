@@ -47,20 +47,19 @@ class ArrayProcessor(QObject):
 
 class FrameToArrayConverter(QObject):
     """
-    Video pipeline component which converts ``QVideoFrame`` to numpy
-    array and emits to :attr:`arrayChanged`.
+    Video pipeline component which converts ``QVideoFrame`` to numpy array and
+    emits to :attr:`arrayChanged`.
 
-    ``QVideoFrame`` is first transformed to ``QImage`` and then
-    converted by :meth:`converter`. You can change the converter by
-    :meth:`setConverter`.
+    ``QVideoFrame`` is first transformed to ``QImage`` and then converted by
+    :meth:`converter`. You can change the converter by :meth:`setConverter`.
 
-    Null frame does not emit array by default. If you set
-    :meth:`ignoreNullFrame` to False, three-dimensional empty array will
-    be emitted.
+    Null frame does not emit array by default. If you set :meth:`ignoreNullFrame`
+    to False, three-dimensional empty array will be emitted.
 
     """
 
     arrayChanged = Signal(np.ndarray)
+    frameStartTimeChanged = Signal(int)
 
     def __init__(self, parent=None):
         super().__init__(parent)
@@ -69,8 +68,8 @@ class FrameToArrayConverter(QObject):
 
     def ignoreNullFrame(self) -> bool:
         """
-        If True, null ``QVideoFrame`` passed to :meth:`setVideoFrame`
-        will be ignored.
+        If True, null ``QVideoFrame`` passed to :meth:`setVideoFrame` will be
+        ignored.
         """
         return self._ignoreNullFrame
 
@@ -85,6 +84,7 @@ class FrameToArrayConverter(QObject):
         Convert ``QVideoFrame`` to :class:`numpy.ndarray` and emit to
         :meth:`setArray`.
         """
+        self.frameStartTimeChanged.emit(frame.startTime())
         qimg = frame.toImage()
         if qimg.isNull() and self.ignoreNullFrame():
             pass
@@ -94,8 +94,8 @@ class FrameToArrayConverter(QObject):
 
     def converter(self) -> Callable[[QImage], NDArray]:
         """
-        A callable to convert ``QImage`` instance to numpy array.
-        Default is ``qimage2.ndarray.rgb_view``.
+        A callable to convert ``QImage`` instance to numpy array. Default is
+        ``qimage2.ndarray.rgb_view``.
         """
         return self._converter
 
@@ -104,8 +104,7 @@ class FrameToArrayConverter(QObject):
 
     def convertQImageToArray(self, qimg: QImage) -> NDArray:
         """
-        Convert *qimg* to numpy array. Null image is converted to
-        empty array.
+        Convert *qimg* to numpy array. Null image is converted to empty array.
         """
         if not qimg.isNull():
             array = self.converter()(qimg)
@@ -116,11 +115,12 @@ class FrameToArrayConverter(QObject):
 
 class NDArrayVideoPlayer(QMediaPlayer):
     """
-    Video player which emits frames as numpy arrays to
-    :attr:`arrayChanged` signal.
+    Video player which emits frames as numpy arrays to :attr:`arrayChanged`
+    signal.
     """
 
     arrayChanged = Signal(np.ndarray)
+    frameStartTimeChanged = Signal(int)
 
     def __init__(self, parent=None):
         super().__init__(parent)
@@ -131,6 +131,9 @@ class NDArrayVideoPlayer(QMediaPlayer):
             self.frameToArrayConverter().setVideoFrame
         )
         self.frameToArrayConverter().arrayChanged.connect(self.arrayChanged)
+        self.frameToArrayConverter().frameStartTimeChanged.connect(
+            self.frameStartTimeChanged
+        )
 
     def frameToArrayConverter(self) -> FrameToArrayConverter:
         return self._frame2Arr
@@ -138,8 +141,8 @@ class NDArrayVideoPlayer(QMediaPlayer):
 
 class NDArrayMediaCaptureSession(QMediaCaptureSession):
     """
-    Media capture session which emits frames from camera as numpy arrays
-    to :attr:`arrayChanged` signal.
+    Media capture session which emits frames from camera as numpy arrays to
+    :attr:`arrayChanged` signal.
     """
 
     arrayChanged = Signal(np.ndarray)
