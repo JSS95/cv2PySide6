@@ -217,7 +217,7 @@ class MediaController(QWidget):
 
 class NDArrayVideoPlayerWidget(QWidget):
     """
-    Widget to display numpy arrays from local video file.
+    Basic widget to display numpy arrays from local video file.
 
     Examples
     ========
@@ -241,12 +241,10 @@ class NDArrayVideoPlayerWidget(QWidget):
         super().__init__(parent)
 
         self._videoPlayer = NDArrayVideoPlayer(self)
-        self._arrayProcessor = ArrayProcessor()
         self._videoLabel = NDArrayLabel()
         self._videoController = MediaController()
 
-        self.videoPlayer().arrayChanged.connect(self.arrayProcessor().setArray)
-        self.arrayProcessor().arrayChanged.connect(self.videoLabel().setArray)
+        self.videoPlayer().arrayChanged.connect(self.videoLabel().setArray)
         self.videoLabel().setAlignment(Qt.AlignCenter)
         self.videoController().setPlayer(self.videoPlayer())
 
@@ -256,12 +254,8 @@ class NDArrayVideoPlayerWidget(QWidget):
         self.setLayout(layout)
 
     def videoPlayer(self) -> NDArrayVideoPlayer:
-        """Object to emit video frames as numy arrays."""
+        """Object to emit video frames as numpy arrays."""
         return self._videoPlayer
-
-    def arrayProcessor(self) -> ArrayProcessor:
-        """Process the array and provide to :meth:`videoLabel`."""
-        return self._arrayProcessor
 
     def videoLabel(self) -> NDArrayLabel:
         """Label to display video image."""
