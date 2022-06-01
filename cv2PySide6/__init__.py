@@ -9,7 +9,7 @@ from .videostream import (
 )
 from .videowidgets import (
     ClickableSlider,
-    MediaController,
+    VideoController,
     NDArrayVideoPlayerWidget,
     NDArrayCameraWidget,
 )
@@ -22,7 +22,7 @@ __all__ = [
     "ArrayProcessor",
     "FrameToArrayConverter",
     "ClickableSlider",
-    "MediaController",
+    "VideoController",
     "NDArrayVideoPlayer",
     "NDArrayMediaCaptureSession",
     "NDArrayVideoPlayerWidget",

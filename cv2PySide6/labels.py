@@ -20,9 +20,9 @@ class ScalableQLabel(QLabel):
     """
     A label which can scale the pixmap before displaying.
 
-    Pixmap can be downscaled or upscaled to fit to the label size,
-    depending on :meth:`pixmapScaleMode` value. Scaling mode can be
-    set by :meth:`setPixmapScaleMode`.
+    Pixmap can be downscaled or upscaled to fit to the label size, depending on
+    :meth:`pixmapScaleMode` value. Scaling mode can be set by
+    :meth:`setPixmapScaleMode`.
 
     :meth:`setPixmap` scales the input pixmap and update to label.
     :meth:`originalPixmap` returns current unscaled pixmap.
@@ -30,22 +30,21 @@ class ScalableQLabel(QLabel):
     Notes
     =====
 
-    Do not modify the size policy and minimum size value. Changing them
-    makes the label not shrinkable.
+    Do not modify the size policy and minimum size value. Changing them makes the
+    label not shrinkable.
 
     """
 
     class PixmapScaleMode(enum.Enum):
         """
-        This enum defines how the pixmap is scaled before being
-        displayed.
+        This enum defines how the pixmap is scaled before being displayed.
 
         Attributes
         ==========
 
         PM_NoScale
-            Pixmap is never scaled. If the label size is smaller than
-            the pixmap size, only a part of the pixmap is displayed.
+            Pixmap is never scaled. If the label size is smaller than the pixmap
+            size, only a part of the pixmap is displayed.
 
         PM_DownScaleOnly
             Pixmap is scaled, but never larger than its original size.
@@ -127,8 +126,8 @@ class ScalableQLabel(QLabel):
 
 class NDArrayLabel(ScalableQLabel):
     """
-    Scalable label which can receive and display :class:`numpy.ndarray`
-    image. Image array can be set by :meth:`setArray`.
+    Scalable label which can receive and display :class:`numpy.ndarray` image.
+    Image array can be set by :meth:`setArray`.
 
     Examples
     ========

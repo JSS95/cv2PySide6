@@ -1,11 +1,6 @@
 import cv2  # type: ignore[import]
-from cv2PySide6 import (
-    FrameToArrayConverter,
-    NDArrayVideoPlayer,
-    get_data_path,
-)
+from cv2PySide6 import FrameToArrayConverter, get_data_path
 import numpy as np
-from PySide6.QtCore import QUrl
 import pytest
 from qimage2ndarray import byte_view, gray2qimage, array2qimage  # type: ignore[import]
 
@@ -24,11 +19,3 @@ def test_FrameToArrayConverter(qtbot):
 
     conv.setConverter(byte_view)
     assert np.all(conv.convertQImageToArray(gray_img) == gray_array[..., np.newaxis])
-
-
-def test_NDArrayVideoPlayer(qtbot):
-    player = NDArrayVideoPlayer()
-    player.setSource(QUrl.fromLocalFile(get_data_path("hello.mp4")))
-    with qtbot.waitSignal(player.arrayChanged):
-        player.play()
-    player.stop()
