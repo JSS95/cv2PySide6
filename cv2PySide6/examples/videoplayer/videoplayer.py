@@ -1,19 +1,20 @@
 """Video player example with canny edge detection process."""
 
 import cv2  # type: ignore[import]
-from cv2PySide6 import ArrayProcessor, NDArrayVideoPlayer, NDArrayLabel, MediaController
+from cv2PySide6 import NDArrayVideoPlayer, NDArrayLabel, MediaController
 import numpy as np
 import numpy.typing as npt
-from PySide6.QtCore import Slot, Qt, QUrl
-from PySide6.QtGui import QCloseEvent
+from PySide6.QtCore import QObject, Signal, Slot, Qt, QUrl
 from PySide6.QtWidgets import QWidget, QPushButton, QVBoxLayout
 from PySide6.QtMultimedia import QMediaPlayer
 
 
-class CannyEdgeDetector(ArrayProcessor):
+class CannyEdgeDetector(QObject):
     """
     Video pipeline component for Canny edge detection on numpy array.
     """
+
+    arrayChanged = Signal(np.ndarray)
 
     def __init__(self, parent=None):
         super().__init__(parent)
@@ -32,21 +33,16 @@ class CannyEdgeDetector(ArrayProcessor):
     def setCannyMode(self, mode: bool):
         self._canny_mode = mode
 
-    @Slot(np.ndarray)
     def setArray(self, array: npt.NDArray[np.uint8]):
-        self._currentArray = array.copy()
-        super().setArray(array)
+        self._currentArray = array
 
-    def processArray(self, array: npt.NDArray[np.uint8]) -> npt.NDArray[np.uint8]:
-        """Perform Canny edge detection."""
-        array = super().processArray(array)
         if array.size > 0 and self.cannyMode():
             gray = cv2.cvtColor(array, cv2.COLOR_RGB2GRAY)
             canny = cv2.Canny(gray, 50, 200)
             ret = cv2.cvtColor(canny, cv2.COLOR_GRAY2RGB)
         else:
             ret = array
-        return ret
+        self.arrayChanged.emit(ret)
 
     def refreshCurrentArray(self):
         """Re-process and emit :meth:`currentArray`."""
@@ -98,10 +94,6 @@ class CannyVideoPlayerWidget(QWidget):
         self.arrayProcessor().setCannyMode(state)
         if self.videoPlayer().playbackState() != QMediaPlayer.PlayingState:
             self.arrayProcessor().refreshCurrentArray()
-
-    def closeEvent(self, event: QCloseEvent):
-        self.videoPlayer().stop()
-        event.accept()
 
 
 if __name__ == "__main__":
