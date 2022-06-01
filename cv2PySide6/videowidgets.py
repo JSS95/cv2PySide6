@@ -1,7 +1,6 @@
 """
 Widgets to play video stream.
 """
-import enum
 from PySide6.QtCore import Qt, QPointF, Slot
 from PySide6.QtGui import QMouseEvent
 from PySide6.QtWidgets import (
@@ -20,7 +19,6 @@ from .videostream import NDArrayVideoPlayer, NDArrayMediaCaptureSession
 
 __all__ = [
     "ClickableSlider",
-    "SliderValueType",
     "VideoController",
     "NDArrayVideoPlayerWidget",
     "NDArrayCameraWidget",
@@ -64,15 +62,6 @@ class ClickableSlider(QSlider):
             sliderMax - sliderMin,
             opt.upsideDown,  # type: ignore[attr-defined]
         )
-
-
-class SliderValueType(enum.IntEnum):
-    """
-    Media information that slider value of :class:`VideoController` represents.
-    """
-
-    POSITION = 1
-    STARTTIME = 2
 
 
 class VideoController(QWidget):
@@ -128,18 +117,6 @@ class VideoController(QWidget):
         """Media player which is controlled by *self*."""
         return self._player
 
-    def sliderValueType(self) -> SliderValueType:
-        player = self.player()
-        if player is None:
-            ret = SliderValueType.POSITION
-        elif player.mediaStatus() == NDArrayVideoPlayer.EndOfMedia:
-            ret = SliderValueType.STARTTIME
-        elif player.playbackState() == NDArrayVideoPlayer.PlayingState:
-            ret = SliderValueType.STARTTIME
-        else:
-            ret = SliderValueType.POSITION
-        return ret
-
     @Slot()
     def onPlayButtonClicked(self):
         """Play or pause :meth:`player`."""
@@ -194,11 +171,8 @@ class VideoController(QWidget):
         player.durationChanged.connect(  # type: ignore[attr-defined]
             self.onMediaDurationChange
         )
-        player.positionChanged.connect(  # type: ignore[attr-defined]
-            self.onMediaPositionChange
-        )
-        player.frameStartTimeChanged.connect(  # type: ignore[attr-defined]
-            self.onframeStartTimeChange
+        player.videoPositionChanged.connect(  # type: ignore[attr-defined]
+            self.onVideoPositionChange
         )
         player.playbackStateChanged.connect(  # type: ignore[attr-defined]
             self.onPlaybackStateChange
@@ -209,11 +183,8 @@ class VideoController(QWidget):
         player.durationChanged.disconnect(  # type: ignore[attr-defined]
             self.onMediaDurationChange
         )
-        player.positionChanged.disconnect(  # type: ignore[attr-defined]
-            self.onMediaPositionChange
-        )
-        player.frameStartTimeChanged.disconnect(  # type: ignore[attr-defined]
-            self.onframeStartTimeChange
+        player.videoPositionChanged.disconnect(  # type: ignore[attr-defined]
+            self.onVideoPositionChange
         )
         player.playbackStateChanged.disconnect(  # type: ignore[attr-defined]
             self.onPlaybackStateChange
@@ -225,16 +196,9 @@ class VideoController(QWidget):
         self.slider().setRange(0, duration)
 
     @Slot(int)
-    def onMediaPositionChange(self, position: int):
-        """Update the slider position to media position."""
-        if self.sliderValueType() == SliderValueType.POSITION:
-            self.slider().setValue(position)
-
-    @Slot(int)
-    def onframeStartTimeChange(self, position: int):
-        """Update the slider position to by video frame starting time."""
-        if self.sliderValueType() == SliderValueType.STARTTIME and position >= 0:
-            self.slider().setValue(int(position / 1000))
+    def onVideoPositionChange(self, position: int):
+        """Update the slider position to video position."""
+        self.slider().setValue(position)
 
     @Slot(NDArrayVideoPlayer.PlaybackState)
     def onPlaybackStateChange(self, state: NDArrayVideoPlayer.PlaybackState):

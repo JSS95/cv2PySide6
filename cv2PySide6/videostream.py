@@ -1,7 +1,7 @@
 """
 Utility objects for video widgets.
 """
-
+import enum
 import numpy as np
 from numpy.typing import NDArray
 from PySide6.QtCore import QObject, Signal, Slot
@@ -19,6 +19,7 @@ from typing import Callable
 __all__ = [
     "ArrayProcessor",
     "FrameToArrayConverter",
+    "VideoPositionSource",
     "NDArrayVideoPlayer",
     "NDArrayMediaCaptureSession",
 ]
@@ -113,6 +114,15 @@ class FrameToArrayConverter(QObject):
         return array
 
 
+class VideoPositionSource(enum.IntEnum):
+    """
+    Indicates how :class:`NDArrayVideoPlayer` determines the video position.
+    """
+
+    POSITION = 1
+    STARTTIME = 2
+
+
 class NDArrayVideoPlayer(QMediaPlayer):
     """
     Video player which emits frames as numpy arrays to :attr:`arrayChanged`
@@ -120,23 +130,53 @@ class NDArrayVideoPlayer(QMediaPlayer):
     """
 
     arrayChanged = Signal(np.ndarray)
-    frameStartTimeChanged = Signal(int)
+    videoPositionChanged = Signal(int)
 
     def __init__(self, parent=None):
         super().__init__(parent)
         self._frame2Arr = FrameToArrayConverter(self)
+        self._videoPosition = 0
 
+        self.positionChanged.connect(self.onPositionChange)
         self.setVideoSink(QVideoSink(self))
         self.videoSink().videoFrameChanged.connect(
             self.frameToArrayConverter().setVideoFrame
         )
         self.frameToArrayConverter().arrayChanged.connect(self.arrayChanged)
         self.frameToArrayConverter().frameStartTimeChanged.connect(
-            self.frameStartTimeChanged
+            self.onFrameStartTimeChange
         )
 
     def frameToArrayConverter(self) -> FrameToArrayConverter:
         return self._frame2Arr
+
+    def videoPosition(self) -> int:
+        return self._videoPosition
+
+    def videoPositionSource(self) -> VideoPositionSource:
+        if self.mediaStatus() == self.EndOfMedia:
+            ret = VideoPositionSource.STARTTIME
+        elif self.playbackState() == self.PlayingState:
+            ret = VideoPositionSource.STARTTIME
+        else:
+            ret = VideoPositionSource.POSITION
+        return ret
+
+    def onPositionChange(self, position: int):
+        if self.videoPositionSource() == VideoPositionSource.POSITION:
+            if position != self.videoPosition():
+                self._videoPosition = position
+                self.videoPositionChanged.emit(position)
+
+    def onFrameStartTimeChange(self, startTime: int):
+        if (
+            self.videoPositionSource() == VideoPositionSource.STARTTIME
+            and startTime >= 0
+        ):
+            position = int(startTime / 1000)
+            if position != self.videoPosition():
+                self._videoPosition = position
+                self.videoPositionChanged.emit(position)
 
 
 class NDArrayMediaCaptureSession(QMediaCaptureSession):
