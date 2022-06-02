@@ -17,33 +17,11 @@ from typing import Callable
 
 
 __all__ = [
-    "ArrayProcessor",
     "FrameToArrayConverter",
     "VideoPositionSource",
     "NDArrayVideoPlayer",
     "NDArrayMediaCaptureSession",
 ]
-
-
-class ArrayProcessor(QObject):
-    """
-    Video pipeline object to process numpy array and emit to
-    :attr:`arrayChanged`.
-    """
-
-    arrayChanged = Signal(np.ndarray)
-
-    @Slot(np.ndarray)
-    def setArray(self, array: NDArray):
-        """
-        Process *array* with :meth:`processArray` and emit to
-        :attr:`arrayChanged`.
-        """
-        self.arrayChanged.emit(self.processArray(array))
-
-    def processArray(self, array: NDArray):
-        """Process and return *array*."""
-        return array
 
 
 class FrameToArrayConverter(QObject):
