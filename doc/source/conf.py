@@ -46,7 +46,7 @@ intersphinx_mapping = {
     "numpy": ("https://numpy.org/doc/stable/", None),
 }
 
-numpydoc_show_class_members = False 
+numpydoc_show_class_members = False
 
 
 # -- Options for HTML output -------------------------------------------------
