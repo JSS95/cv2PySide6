@@ -23,9 +23,11 @@ from .videostream import (
     NDArrayVideoPlayer,
     NDArrayMediaCaptureSession,
 )
-from .videowidgets import (
+from .videoutil import (
     ClickableSlider,
     MediaController,
+)
+from .videowidgets import (
     NDArrayVideoPlayerWidget,
     NDArrayCameraWidget,
 )
