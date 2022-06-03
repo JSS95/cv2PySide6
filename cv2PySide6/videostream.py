@@ -64,7 +64,7 @@ class FrameToArrayConverter(QObject):
         if qimg.isNull() and self.ignoreNullFrame():
             pass
         else:
-            array = self.convertQImageToArray(qimg)
+            array = self.convertQImageToArray(qimg).copy()  # detach reference
             self.arrayChanged.emit(array)
 
     def converter(self) -> Callable[[QImage], NDArray]:
