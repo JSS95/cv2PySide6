@@ -10,7 +10,7 @@ Welcome to cv2PySide6's documentation!
    :maxdepth: 2
    :caption: Contents:
 
-
+   API reference <reference/index>
 
 Indices and tables
 ==================
