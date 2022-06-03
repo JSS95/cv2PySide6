@@ -9,7 +9,6 @@ from PySide6.QtMultimedia import QMediaCaptureSession, QVideoSink, QVideoFrame
 from PySide6.QtWidgets import QMainWindow
 
 
-
 class FrameSender(QObject):
     """Object to sent the array to processor thread."""
 
