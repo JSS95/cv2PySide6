@@ -112,10 +112,6 @@ jobs:
       - name: set up Python
         uses: actions/setup-python@v2
 
-      - name: install sphinx
-        run: |
-          sudo apt-get install python3-sphinx
-
       - name: install package
         run: |
           pip install .[doc]
