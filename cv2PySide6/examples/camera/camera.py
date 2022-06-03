@@ -1,4 +1,4 @@
-"""Camera example with Gaussian blurring process with multithreading."""
+"""Camera example with multithreaded Gaussian blurring process."""
 
 import cv2  # type: ignore
 from cv2PySide6 import FrameToArrayConverter, NDArrayLabel
@@ -59,6 +59,7 @@ class Window(QMainWindow):
             self.arrayProcessor().setArray
         )
         self.arrayProcessor().arrayChanged.connect(self.arrayLabel().setArray)
+
         self.arrayLabel().setAlignment(Qt.AlignCenter)  # type: ignore[arg-type]
         self.setCentralWidget(self.arrayLabel())
 
@@ -81,7 +82,7 @@ class Window(QMainWindow):
     def arrayLabel(self) -> NDArrayLabel:
         return self._arrayLabel
 
-    @Slot(np.ndarray)
+    @Slot(QVideoFrame)
     def onFramePassedFromCamera(self, frame: QVideoFrame):
         if self.arrayProcessor().ready():
             self._frameSender.frameChanged.emit(frame)
