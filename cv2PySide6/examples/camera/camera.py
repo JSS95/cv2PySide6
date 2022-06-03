@@ -1,10 +1,11 @@
 """Camera example with Gaussian blurring process."""
 
 import cv2  # type: ignore
-from cv2PySide6 import NDArrayMediaCaptureSession, NDArrayLabel
+from cv2PySide6 import FrameToArrayConverter, NDArrayLabel
 import numpy as np
 import numpy.typing as npt
 from PySide6.QtCore import QObject, Signal, Slot, Qt
+from PySide6.QtMultimedia import QMediaCaptureSession, QVideoSink
 from PySide6.QtWidgets import QMainWindow
 
 
@@ -36,12 +37,17 @@ class ArraySender(QObject):
 class Window(QMainWindow):
     def __init__(self, parent=None):
         super().__init__(parent)
-        self._captureSession = NDArrayMediaCaptureSession()
+        self._captureSession = QMediaCaptureSession()
+        self._frame2Arr = FrameToArrayConverter()
         self._arraySender = ArraySender()
         self._arrayProcessor = BlurringProcessor()
         self._arrayLabel = NDArrayLabel()
 
-        self.captureSession().arrayChanged.connect(self.onArrayPassedFromCamera)
+        self.captureSession().setVideoSink(QVideoSink(self))
+        self.captureSession().videoSink().videoFrameChanged.connect(
+            self.frameToArrayConverter().setVideoFrame
+        )
+        self.frameToArrayConverter().arrayChanged.connect(self.onArrayPassedFromCamera)
         self._arraySender.arrayChanged.connect(self.arrayProcessor().setArray)
         self.arrayProcessor().arrayChanged.connect(self.arrayLabel().setArray)
         self.arrayLabel().setAlignment(Qt.AlignCenter)  # type: ignore[arg-type]
@@ -51,8 +57,11 @@ class Window(QMainWindow):
         self.captureSession().setCamera(camera)
         camera.start()
 
-    def captureSession(self) -> NDArrayMediaCaptureSession:
+    def captureSession(self) -> QMediaCaptureSession:
         return self._captureSession
+
+    def frameToArrayConverter(self) -> FrameToArrayConverter:
+        return self._frame2Arr
 
     def arrayProcessor(self) -> BlurringProcessor:
         return self._arrayProcessor
