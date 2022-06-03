@@ -1,10 +1,11 @@
-"""Video player example with canny edge detection process."""
+"""Video player example with multithreaded canny edge detection process."""
 
 import cv2  # type: ignore[import]
-from cv2PySide6 import NDArrayVideoPlayer, NDArrayLabel, MediaController
+from cv2PySide6 import FrameToArrayConverter, MediaController, NDArrayLabel
 import numpy as np
 import numpy.typing as npt
 from PySide6.QtCore import QObject, Signal, Slot, Qt, QUrl
+from PySide6.QtMultimedia import QMediaPlayer, QVideoSink
 from PySide6.QtWidgets import QWidget, QPushButton, QVBoxLayout
 
 
@@ -52,13 +53,20 @@ class CannyVideoPlayerWidget(QWidget):
     def __init__(self, parent=None):
         super().__init__(parent)
 
-        self._videoPlayer = NDArrayVideoPlayer(self)
+        self._videoPlayer = QMediaPlayer(self)
+        self._frame2Arr = FrameToArrayConverter()
         self._arrayProcessor = CannyEdgeDetector()
         self._videoLabel = NDArrayLabel()
         self._mediaController = MediaController()
         self._cannyButton = QPushButton()
 
-        self.videoPlayer().arrayChanged.connect(self.arrayProcessor().setArray)
+        self.videoPlayer().setVideoSink(QVideoSink(self))
+        self.videoPlayer().videoSink().videoFrameChanged.connect(
+            self.frameToArrayConverter().setVideoFrame
+        )
+        self.frameToArrayConverter().arrayChanged.connect(
+            self.arrayProcessor().setArray
+        )
         self.arrayProcessor().arrayChanged.connect(self.videoLabel().setArray)
         self.videoLabel().setAlignment(Qt.AlignCenter)
         self.mediaController().setPlayer(self.videoPlayer())
@@ -73,8 +81,11 @@ class CannyVideoPlayerWidget(QWidget):
         layout.addWidget(self.cannyButton())
         self.setLayout(layout)
 
-    def videoPlayer(self) -> NDArrayVideoPlayer:
+    def videoPlayer(self) -> QMediaPlayer:
         return self._videoPlayer
+
+    def frameToArrayConverter(self) -> FrameToArrayConverter:
+        return self._frame2Arr
 
     def arrayProcessor(self) -> CannyEdgeDetector:
         return self._arrayProcessor

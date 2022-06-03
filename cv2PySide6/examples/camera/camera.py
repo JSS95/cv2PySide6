@@ -1,4 +1,4 @@
-"""Camera example with Gaussian blurring process with multithreading."""
+"""Camera example with multithreaded Gaussian blurring process."""
 
 import cv2  # type: ignore
 from cv2PySide6 import FrameToArrayConverter, NDArrayLabel
