@@ -1,12 +1,19 @@
-"""Camera example with Gaussian blurring process."""
+"""Camera example with Gaussian blurring process with multithreading."""
 
 import cv2  # type: ignore
 from cv2PySide6 import FrameToArrayConverter, NDArrayLabel
 import numpy as np
 import numpy.typing as npt
-from PySide6.QtCore import QObject, Signal, Slot, Qt
-from PySide6.QtMultimedia import QMediaCaptureSession, QVideoSink
+from PySide6.QtCore import QObject, Signal, Slot, Qt, QThread
+from PySide6.QtMultimedia import QMediaCaptureSession, QVideoSink, QVideoFrame
 from PySide6.QtWidgets import QMainWindow
+
+
+
+class FrameSender(QObject):
+    """Object to sent the array to processor thread."""
+
+    frameChanged = Signal(QVideoFrame)
 
 
 class BlurringProcessor(QObject):
@@ -28,27 +35,30 @@ class BlurringProcessor(QObject):
         self._ready = True
 
 
-class ArraySender(QObject):
-    """Object to sent the array to :class:`BlurringProcessor`."""
-
-    arrayChanged = Signal(np.ndarray)
-
-
 class Window(QMainWindow):
     def __init__(self, parent=None):
         super().__init__(parent)
         self._captureSession = QMediaCaptureSession()
+        self._frameSender = FrameSender()
+        self._processorThread = QThread()
         self._frame2Arr = FrameToArrayConverter()
-        self._arraySender = ArraySender()
         self._arrayProcessor = BlurringProcessor()
         self._arrayLabel = NDArrayLabel()
 
+        self.frameToArrayConverter().moveToThread(self.processorThread())
+        self.arrayProcessor().moveToThread(self.processorThread())
+        self.processorThread().start()
+
         self.captureSession().setVideoSink(QVideoSink(self))
         self.captureSession().videoSink().videoFrameChanged.connect(
+            self.onFramePassedFromCamera
+        )
+        self._frameSender.frameChanged.connect(
             self.frameToArrayConverter().setVideoFrame
         )
-        self.frameToArrayConverter().arrayChanged.connect(self.onArrayPassedFromCamera)
-        self._arraySender.arrayChanged.connect(self.arrayProcessor().setArray)
+        self.frameToArrayConverter().arrayChanged.connect(
+            self.arrayProcessor().setArray
+        )
         self.arrayProcessor().arrayChanged.connect(self.arrayLabel().setArray)
         self.arrayLabel().setAlignment(Qt.AlignCenter)  # type: ignore[arg-type]
         self.setCentralWidget(self.arrayLabel())
@@ -60,6 +70,9 @@ class Window(QMainWindow):
     def captureSession(self) -> QMediaCaptureSession:
         return self._captureSession
 
+    def processorThread(self) -> QThread:
+        return self._processorThread
+
     def frameToArrayConverter(self) -> FrameToArrayConverter:
         return self._frame2Arr
 
@@ -70,9 +83,14 @@ class Window(QMainWindow):
         return self._arrayLabel
 
     @Slot(np.ndarray)
-    def onArrayPassedFromCamera(self, array: npt.NDArray[np.uint8]):
+    def onFramePassedFromCamera(self, frame: QVideoFrame):
         if self.arrayProcessor().ready():
-            self._arraySender.arrayChanged.emit(array)
+            self._frameSender.frameChanged.emit(frame)
+
+    def closeEvent(self, event):
+        self.processorThread().quit()
+        self.processorThread().wait()
+        super().closeEvent(event)
 
 
 if __name__ == "__main__":
