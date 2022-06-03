@@ -1,7 +1,7 @@
 """Video player example with canny edge detection process."""
 
 import cv2  # type: ignore[import]
-from cv2PySide6 import NDArrayVideoPlayer, NDArrayLabel, VideoController
+from cv2PySide6 import NDArrayVideoPlayer, NDArrayLabel, MediaController
 import numpy as np
 import numpy.typing as npt
 from PySide6.QtCore import QObject, Signal, Slot, Qt, QUrl
@@ -55,13 +55,13 @@ class CannyVideoPlayerWidget(QWidget):
         self._videoPlayer = NDArrayVideoPlayer(self)
         self._arrayProcessor = CannyEdgeDetector()
         self._videoLabel = NDArrayLabel()
-        self._videoController = VideoController()
+        self._mediaController = MediaController()
         self._cannyButton = QPushButton()
 
         self.videoPlayer().arrayChanged.connect(self.arrayProcessor().setArray)
         self.arrayProcessor().arrayChanged.connect(self.videoLabel().setArray)
         self.videoLabel().setAlignment(Qt.AlignCenter)
-        self.videoController().setPlayer(self.videoPlayer())
+        self.mediaController().setPlayer(self.videoPlayer())
         self.cannyButton().setCheckable(True)
         self.cannyButton().toggled.connect(self.onCannyButtonToggle)
 
@@ -69,7 +69,7 @@ class CannyVideoPlayerWidget(QWidget):
 
         layout = QVBoxLayout()
         layout.addWidget(self.videoLabel())
-        layout.addWidget(self.videoController())
+        layout.addWidget(self.mediaController())
         layout.addWidget(self.cannyButton())
         self.setLayout(layout)
 
@@ -82,8 +82,8 @@ class CannyVideoPlayerWidget(QWidget):
     def videoLabel(self) -> NDArrayLabel:
         return self._videoLabel
 
-    def videoController(self) -> VideoController:
-        return self._videoController
+    def mediaController(self) -> MediaController:
+        return self._mediaController
 
     def cannyButton(self) -> QPushButton:
         return self._cannyButton
@@ -91,7 +91,7 @@ class CannyVideoPlayerWidget(QWidget):
     @Slot(bool)
     def onCannyButtonToggle(self, state: bool):
         self.arrayProcessor().setCannyMode(state)
-        if self.videoPlayer().playbackState() != NDArrayVideoPlayer.PlayingState:
+        if self.videoPlayer().playbackState() != self.videoPlayer().PlayingState:
             self.arrayProcessor().refreshCurrentArray()
 
 

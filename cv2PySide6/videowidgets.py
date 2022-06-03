@@ -3,6 +3,7 @@ Widgets to play video stream.
 """
 from PySide6.QtCore import Qt, QPointF, Slot
 from PySide6.QtGui import QMouseEvent
+from PySide6.QtMultimedia import QMediaPlayer
 from PySide6.QtWidgets import (
     QSlider,
     QStyleOptionSlider,
@@ -19,7 +20,7 @@ from .videostream import NDArrayVideoPlayer, NDArrayMediaCaptureSession
 
 __all__ = [
     "ClickableSlider",
-    "VideoController",
+    "MediaController",
     "NDArrayVideoPlayerWidget",
     "NDArrayCameraWidget",
 ]
@@ -64,14 +65,13 @@ class ClickableSlider(QSlider):
         )
 
 
-class VideoController(QWidget):
+class MediaController(QWidget):
     """
-    Widget to control :class:`NDArrayVideoPlayer`.
+    Widget to control :class:`QMediaPlayer`.
 
     This controller can change the playback state and media position by
     :meth:`playButton`, :meth:`stopButton`, and :meth:`slider`.
-    Pass :class:`NDArrayVideoPlayer` to :meth:`setPlayer` to control it by this
-    widget.
+    Pass :class:`QMediaPlayer` to :meth:`setPlayer` to control it by this widget.
 
     """
 
@@ -113,7 +113,7 @@ class VideoController(QWidget):
         """Button to stop the media."""
         return self._stopButton
 
-    def player(self) -> Optional[NDArrayVideoPlayer]:
+    def player(self) -> Optional[QMediaPlayer]:
         """Media player which is controlled by *self*."""
         return self._player
 
@@ -121,7 +121,7 @@ class VideoController(QWidget):
     def onPlayButtonClicked(self):
         """Play or pause :meth:`player`."""
         if self.player() is not None:
-            if self.player().playbackState() == NDArrayVideoPlayer.PlayingState:
+            if self.player().playbackState() == QMediaPlayer.PlayingState:
                 self.player().pause()
             else:
                 self.player().play()
@@ -137,7 +137,7 @@ class VideoController(QWidget):
         """If the media was playing, pause and move to the pressed position."""
         if (
             self.player() is not None
-            and self.player().playbackState() == NDArrayVideoPlayer.PlayingState
+            and self.player().playbackState() == QMediaPlayer.PlayingState
         ):
             self._pausedBySliderPress = True
             self.player().pause()
@@ -157,7 +157,7 @@ class VideoController(QWidget):
             self.player().play()
             self._pausedBySliderPress = False
 
-    def setPlayer(self, player: Optional[NDArrayVideoPlayer]):
+    def setPlayer(self, player: Optional[QMediaPlayer]):
         """Set :meth:`player` and connect the signals."""
         old_player = self.player()
         if old_player is not None:
@@ -166,25 +166,25 @@ class VideoController(QWidget):
         if player is not None:
             self.connectPlayer(player)
 
-    def connectPlayer(self, player: NDArrayVideoPlayer):
+    def connectPlayer(self, player: QMediaPlayer):
         """Connect signals and slots with *player*."""
         player.durationChanged.connect(  # type: ignore[attr-defined]
             self.onMediaDurationChange
         )
-        player.videoPositionChanged.connect(  # type: ignore[attr-defined]
-            self.onVideoPositionChange
+        player.positionChanged.connect(  # type: ignore[attr-defined]
+            self.onMediaPositionChange
         )
         player.playbackStateChanged.connect(  # type: ignore[attr-defined]
             self.onPlaybackStateChange
         )
 
-    def disconnectPlayer(self, player: NDArrayVideoPlayer):
+    def disconnectPlayer(self, player: QMediaPlayer):
         """Disconnect signals and slots with *player*."""
         player.durationChanged.disconnect(  # type: ignore[attr-defined]
             self.onMediaDurationChange
         )
-        player.videoPositionChanged.disconnect(  # type: ignore[attr-defined]
-            self.onVideoPositionChange
+        player.positionChanged.disconnect(  # type: ignore[attr-defined]
+            self.onMediaPositionChange
         )
         player.playbackStateChanged.disconnect(  # type: ignore[attr-defined]
             self.onPlaybackStateChange
@@ -196,14 +196,14 @@ class VideoController(QWidget):
         self.slider().setRange(0, duration)
 
     @Slot(int)
-    def onVideoPositionChange(self, position: int):
+    def onMediaPositionChange(self, position: int):
         """Update the slider position to video position."""
         self.slider().setValue(position)
 
-    @Slot(NDArrayVideoPlayer.PlaybackState)
-    def onPlaybackStateChange(self, state: NDArrayVideoPlayer.PlaybackState):
+    @Slot(QMediaPlayer.PlaybackState)
+    def onPlaybackStateChange(self, state: QMediaPlayer.PlaybackState):
         """Switch the play icon and pause icon by *state*."""
-        if state == NDArrayVideoPlayer.PlayingState:
+        if state == QMediaPlayer.PlayingState:
             pause_icon = self.style().standardIcon(QStyle.SP_MediaPause)
             self.playButton().setIcon(pause_icon)
         else:
@@ -238,15 +238,15 @@ class NDArrayVideoPlayerWidget(QWidget):
 
         self._videoPlayer = NDArrayVideoPlayer(self)
         self._videoLabel = NDArrayLabel()
-        self._videoController = VideoController()
+        self._mediaController = MediaController()
 
         self.videoPlayer().arrayChanged.connect(self.videoLabel().setArray)
         self.videoLabel().setAlignment(Qt.AlignCenter)
-        self.videoController().setPlayer(self.videoPlayer())
+        self.mediaController().setPlayer(self.videoPlayer())
 
         layout = QVBoxLayout()
         layout.addWidget(self.videoLabel())
-        layout.addWidget(self.videoController())
+        layout.addWidget(self.mediaController())
         self.setLayout(layout)
 
     def videoPlayer(self) -> NDArrayVideoPlayer:
@@ -257,9 +257,9 @@ class NDArrayVideoPlayerWidget(QWidget):
         """Label to display video image."""
         return self._videoLabel
 
-    def videoController(self) -> VideoController:
+    def mediaController(self) -> MediaController:
         """Widget to control :meth:`videoPlayer`."""
-        return self._videoController
+        return self._mediaController
 
 
 class NDArrayCameraWidget(QWidget):
