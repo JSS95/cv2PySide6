@@ -5,6 +5,7 @@ from cv2PySide6 import NDArrayMediaCaptureSession, NDArrayLabel
 import numpy as np
 import numpy.typing as npt
 from PySide6.QtCore import QObject, Signal, Qt
+from PySide6.QtWidgets import QMainWindow
 
 
 class BlurringProcessor(QObject):
@@ -18,25 +19,39 @@ class BlurringProcessor(QObject):
         self.arrayChanged.emit(cv2.GaussianBlur(array, (0, 0), 25))
 
 
+class Window(QMainWindow):
+    def __init__(self, parent=None):
+        super().__init__(parent)
+        self._captureSession = NDArrayMediaCaptureSession()
+        self._arrayProcessor = BlurringProcessor()
+        self._arrayLabel = NDArrayLabel()
+
+        self.captureSession().arrayChanged.connect(self.arrayProcessor().setArray)
+        self.arrayProcessor().arrayChanged.connect(self.arrayLabel().setArray)
+        self.arrayLabel().setAlignment(Qt.AlignCenter)  # type: ignore[arg-type]
+        self.setCentralWidget(self.arrayLabel())
+
+        camera = QCamera(self)
+        self.captureSession().setCamera(camera)
+        camera.start()
+
+    def captureSession(self) -> NDArrayMediaCaptureSession:
+        return self._captureSession
+
+    def arrayProcessor(self) -> BlurringProcessor:
+        return self._arrayProcessor
+
+    def arrayLabel(self) -> NDArrayLabel:
+        return self._arrayLabel
+
+
 if __name__ == "__main__":
     from PySide6.QtWidgets import QApplication
     from PySide6.QtMultimedia import QCamera
     import sys
 
     app = QApplication(sys.argv)
-
-    session = NDArrayMediaCaptureSession()
-    processor = BlurringProcessor()
-    label = NDArrayLabel()
-
-    session.arrayChanged.connect(processor.setArray)
-    processor.arrayChanged.connect(label.setArray)
-    label.setAlignment(Qt.AlignCenter)  # type: ignore[arg-type]
-
-    camera = QCamera()
-    session.setCamera(camera)
-    camera.start()
-
-    label.show()
+    window = Window()
+    window.show()
     app.exec()
     app.quit()
