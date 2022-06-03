@@ -114,7 +114,7 @@ jobs:
 
       - name: install sphinx
         run: |
-          apt-get install python3-sphinx
+          sudo apt-get install python3-sphinx
 
       - name: install package
         run: |
