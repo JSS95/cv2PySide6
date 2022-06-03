@@ -13,9 +13,18 @@ class BlurringProcessor(QObject):
 
     arrayChanged = Signal(np.ndarray)
 
+    def __init__(self, parent=None):
+        super().__init__(parent)
+        self._ready = True
+
+    def ready(self) -> bool:
+        return self._ready
+
     @Slot(np.ndarray)
     def setArray(self, array: npt.NDArray[np.uint8]):
+        self._ready = False
         self.arrayChanged.emit(cv2.GaussianBlur(array, (0, 0), 25))
+        self._ready = True
 
 
 class ArraySender(QObject):
@@ -53,7 +62,8 @@ class Window(QMainWindow):
 
     @Slot(np.ndarray)
     def onArrayPassedFromCamera(self, array: npt.NDArray[np.uint8]):
-        self._arraySender.arrayChanged.emit(array)
+        if self.arrayProcessor().ready():
+            self._arraySender.arrayChanged.emit(array)
 
 
 if __name__ == "__main__":
