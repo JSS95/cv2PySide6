@@ -1,5 +1,15 @@
 """
-Labels to display frames from image or video.
+Array label
+===========
+
+:mod:`cv2PySide6.labels` provides subclasses of ``QLabel`` with utilities.
+
+.. autoclass:: ScalableQLabel
+   :members:
+
+.. autoclass:: NDArrayLabel
+   :members:
+
 """
 
 import enum
@@ -21,8 +31,7 @@ class ScalableQLabel(QLabel):
     A label which can scale the pixmap before displaying.
 
     Pixmap can be downscaled or upscaled to fit to the label size, depending on
-    :meth:`pixmapScaleMode` value. Scaling mode can be set by
-    :meth:`setPixmapScaleMode`.
+    :meth:`pixmapScaleMode`.
 
     :meth:`setPixmap` scales the input pixmap and update to label.
     :meth:`originalPixmap` returns current unscaled pixmap.
@@ -81,14 +90,12 @@ class ScalableQLabel(QLabel):
         return self._original_pixmap
 
     def pixmapScaleMode(self) -> PixmapScaleMode:
-        """
-        Mode to scale the pixmap. Default is :attr:`PM_DownScaleOnly`.
-        """
+        """Mode to scale the pixmap. Default is :attr:`PM_DownScaleOnly`."""
         return self._pixmapScaleMode
 
     @Slot(PixmapScaleMode)
     def setPixmapScaleMode(self, flag: PixmapScaleMode):
-        """Set :meth:`pixmapScaleMode` to *flag* and update self."""
+        """Set :meth:`pixmapScaleMode` to *flag* and update the label."""
         self._pixmapScaleMode = flag
         self.update()
 
@@ -150,7 +157,10 @@ class NDArrayLabel(ScalableQLabel):
 
     @Slot(np.ndarray)
     def setArray(self, array: np.ndarray):
-        """Convert the RGB(A) array to pixmap and display."""
+        """
+        Convert the array to pixmap using :func:`qimage2ndarray.array2qimage`,
+        and display.
+        """
         if array.size > 0:
             pixmap = QPixmap.fromImage(array2qimage(array))
         else:
