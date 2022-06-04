@@ -11,6 +11,7 @@ Welcome to cv2PySide6's documentation!
    :caption: Contents:
 
    API reference <reference/index>
+   Examples <examples/index>
 
 Indices and tables
 ==================
