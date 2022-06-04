@@ -45,6 +45,9 @@ setup(
     long_description=read_readme(),
     long_description_content_type="text/markdown",
     classifiers=[
+        "Development Status :: 5 - Production/Stable",
+        "Intended Audience :: Developers",
+        "Intended Audience :: Science/Research",
         (
             "License :: OSI Approved :: "
             "GNU Library or Lesser General Public License (LGPL)"
@@ -61,7 +64,9 @@ setup(
         "Programming Language :: Python :: 3.8",
         "Programming Language :: Python :: 3.9",
         "Programming Language :: Python :: 3.10",
+        "Topic :: Multimedia :: Graphics",
         "Topic :: Software Development",
+        "Topic :: Software Development :: Libraries :: Python Modules",
         "Topic :: Software Development :: User Interfaces",
         "Topic :: Software Development :: Widget Sets",
     ],
