@@ -7,7 +7,9 @@ video pipelines.
 
 """
 
-from PySide6.QtCore import Qt
+import numpy as np
+import numpy.typing as npt
+from PySide6.QtCore import Qt, Slot
 from PySide6.QtWidgets import QWidget, QVBoxLayout
 from .labels import NDArrayLabel
 from .videostream import NDArrayVideoPlayer, NDArrayMediaCaptureSession
@@ -22,7 +24,7 @@ __all__ = [
 
 class NDArrayVideoPlayerWidget(QWidget):
     """
-    Basic widget to display numpy arrays from local video file.
+    Convenience widget to process and display numpy arrays from local video file.
 
     Examples
     ========
@@ -40,6 +42,13 @@ class NDArrayVideoPlayerWidget(QWidget):
     ...     app.exec()
     ...     app.quit()
     >>> runGUI() # doctest: +SKIP
+
+    Notes
+    =====
+
+    This widget processes the frame with single thread, therefore long operation
+    block the GUI. Refer to the package examples for building multithread stream.
+
     """
 
     def __init__(self, parent=None):
@@ -49,7 +58,7 @@ class NDArrayVideoPlayerWidget(QWidget):
         self._videoLabel = NDArrayLabel()
         self._mediaController = MediaController()
 
-        self.videoPlayer().arrayChanged.connect(self.videoLabel().setArray)
+        self.videoPlayer().arrayChanged.connect(self.setArray)
         self.videoLabel().setAlignment(Qt.AlignCenter)
         self.mediaController().setPlayer(self.videoPlayer())
 
@@ -70,10 +79,15 @@ class NDArrayVideoPlayerWidget(QWidget):
         """Widget to control :meth:`videoPlayer`."""
         return self._mediaController
 
+    @Slot(np.ndarray)
+    def setArray(self, array: npt.NDArray[np.uint8]):
+        """Process the array and set to :meth:`videoLabel`."""
+        self.videoLabel().setArray(array)
+
 
 class NDArrayCameraWidget(QWidget):
     """
-    Basic widget to display numpy arrays from camera.
+    Convenience widget to process and display numpy arrays from camera.
 
     Examples
     ========
@@ -93,6 +107,12 @@ class NDArrayCameraWidget(QWidget):
     ...     app.quit()
     >>> runGUI() # doctest: +SKIP
 
+    Notes
+    =====
+
+    This widget processes the frame with single thread, therefore long operation
+    block the GUI. Refer to the package examples for building multithread stream.
+
     """
 
     def __init__(self, parent=None):
@@ -101,7 +121,7 @@ class NDArrayCameraWidget(QWidget):
         self._mediaCaptureSession = NDArrayMediaCaptureSession()
         self._videoLabel = NDArrayLabel()
 
-        self.mediaCaptureSession().arrayChanged.connect(self.videoLabel().setArray)
+        self.mediaCaptureSession().arrayChanged.connect(self.setArray)
         self.videoLabel().setAlignment(Qt.AlignCenter)
 
         layout = QVBoxLayout()
@@ -114,3 +134,8 @@ class NDArrayCameraWidget(QWidget):
     def videoLabel(self) -> NDArrayLabel:
         """Label to display video image."""
         return self._videoLabel
+
+    @Slot(np.ndarray)
+    def setArray(self, array: npt.NDArray[np.uint8]):
+        """Process the array and set to :meth:`videoLabel`."""
+        self.videoLabel().setArray(array)
