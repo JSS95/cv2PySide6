@@ -53,6 +53,7 @@ To build multithread pipeline, refer to the examples and build the pipeline your
 # Examples
 
 Use cases with multithreading are provided in [examples](https://github.com/JSS95/cv2PySide6/tree/master/cv2PySide6/examples) directory.
+They can be found in documentation as well.
 
 # Documentation
 
