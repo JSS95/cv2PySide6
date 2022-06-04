@@ -1,2 +1,2 @@
-.. automodule:: cv2PySide6.labels
+.. automodule:: cv2PySide6.videostream
    :members:
