@@ -4,12 +4,6 @@ Array label
 
 :mod:`cv2PySide6.labels` provides subclasses of ``QLabel`` with utilities.
 
-.. autoclass:: ScalableQLabel
-   :members:
-
-.. autoclass:: NDArrayLabel
-   :members:
-
 """
 
 import enum
