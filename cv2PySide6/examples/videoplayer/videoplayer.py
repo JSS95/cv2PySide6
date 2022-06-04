@@ -3,7 +3,6 @@
 import cv2  # type: ignore[import]
 from cv2PySide6 import FrameToArrayConverter, MediaController, NDArrayLabel
 import numpy as np
-import numpy.typing as npt
 from PySide6.QtCore import QObject, Signal, Slot, QThread, Qt, QUrl
 from PySide6.QtMultimedia import QMediaPlayer, QVideoSink, QVideoFrame
 from PySide6.QtWidgets import QWidget, QPushButton, QVBoxLayout
@@ -28,7 +27,7 @@ class CannyEdgeDetector(QObject):
         self._canny_mode = False
         self._ready = True
 
-    def currentArray(self) -> npt.NDArray[np.uint8]:
+    def currentArray(self) -> np.ndarray:
         """Last array passed to :meth:`setArray`."""
         return self._currentArray
 
@@ -43,7 +42,7 @@ class CannyEdgeDetector(QObject):
     def setCannyMode(self, mode: bool):
         self._canny_mode = mode
 
-    def setArray(self, array: npt.NDArray[np.uint8]):
+    def setArray(self, array: np.ndarray):
         self._ready = False
         self._currentArray = array
         if array.size > 0 and self.cannyMode():

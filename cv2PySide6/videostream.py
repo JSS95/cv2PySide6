@@ -8,7 +8,6 @@ numpy array.
 """
 
 import numpy as np
-from numpy.typing import NDArray
 from PySide6.QtCore import QObject, Signal, Slot
 from PySide6.QtGui import QImage
 from PySide6.QtMultimedia import (
@@ -74,17 +73,17 @@ class FrameToArrayConverter(QObject):
             array = self.convertQImageToArray(qimg)
             self.arrayChanged.emit(array)
 
-    def converter(self) -> Callable[[QImage], NDArray]:
+    def converter(self) -> Callable[[QImage], np.ndarray]:
         """
         Callable object to convert ``QImage`` instance to numpy array. Default is
         ``qimage2ndarray.rgb_view``.
         """
         return self._converter
 
-    def setConverter(self, func: Callable[[QImage], NDArray]):
+    def setConverter(self, func: Callable[[QImage], np.ndarray]):
         self._converter = func
 
-    def convertQImageToArray(self, qimg: QImage) -> NDArray:
+    def convertQImageToArray(self, qimg: QImage) -> np.ndarray:
         """
         Convert *qimg* to numpy array. Null image is converted to empty array.
         """

@@ -3,7 +3,6 @@
 import cv2  # type: ignore
 from cv2PySide6 import FrameToArrayConverter, NDArrayLabel
 import numpy as np
-import numpy.typing as npt
 from PySide6.QtCore import QObject, Signal, Slot, Qt, QThread
 from PySide6.QtMultimedia import QMediaCaptureSession, QVideoSink, QVideoFrame
 from PySide6.QtWidgets import QMainWindow
@@ -28,7 +27,7 @@ class BlurringProcessor(QObject):
         return self._ready
 
     @Slot(np.ndarray)
-    def setArray(self, array: npt.NDArray[np.uint8]):
+    def setArray(self, array: np.ndarray):
         self._ready = False
         self.arrayChanged.emit(cv2.GaussianBlur(array, (0, 0), 25))
         self._ready = True

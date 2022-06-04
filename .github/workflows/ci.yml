@@ -59,6 +59,7 @@ jobs:
     strategy:
       matrix:
         os : [ubuntu-latest]
+        # cannot run ci in python 3.6, 3.7 (https://bugreports.qt.io/browse/PYSIDE-1797)
         python: ["3.8", "3.9", "3.10"]
 
     env:
