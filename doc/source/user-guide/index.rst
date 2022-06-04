@@ -6,3 +6,4 @@ User guide
    :maxdepth: 1
 
    introduction
+   installation
