@@ -59,8 +59,12 @@ jobs:
     strategy:
       matrix:
         os : [ubuntu-latest]
-        pyside6: ["6.2", "6.3"]
         python: ["3.6", "3.7", "3.8", "3.9", "3.10"]
+        pyside6: ["6.2", "6.3"]
+        # cannot run some versions ci (https://bugreports.qt.io/browse/PYSIDE-1797)
+        exclude:
+          - python: "3.6"
+            pyside6: "6.3"
 
     env:
       DISPLAY: ':99.0'
