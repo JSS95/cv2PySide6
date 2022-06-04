@@ -10,3 +10,4 @@ This manual describes the modules and objects in :mod:`cv2PySide6`.
    :maxdepth: 2
 
    labels
+   videostream
