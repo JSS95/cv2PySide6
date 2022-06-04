@@ -46,8 +46,9 @@ class NDArrayVideoPlayerWidget(QWidget):
     Notes
     =====
 
-    This widget processes the frame with single thread, therefore long operation
-    block the GUI. Refer to the package examples for building multithread stream.
+    This widget processes the frames with single thread, therefore long
+    processing blocks the GUI. Refer to the package examples for building
+    multithread pipeline.
 
     """
 
@@ -81,8 +82,15 @@ class NDArrayVideoPlayerWidget(QWidget):
 
     @Slot(np.ndarray)
     def setArray(self, array: npt.NDArray[np.uint8]):
-        """Process the array and set to :meth:`videoLabel`."""
-        self.videoLabel().setArray(array)
+        """
+        Process the array with :meth:`processArray` and set to :meth:`videoLabel`.
+        """
+        ret = self.processArray(array)
+        self.videoLabel().setArray(ret)
+
+    def processArray(self, array: npt.NDArray[np.uint8]) -> npt.NDArray[np.uint8]:
+        """Perform array processing. Redefine this method if needed."""
+        return array
 
 
 class NDArrayCameraWidget(QWidget):
@@ -110,8 +118,9 @@ class NDArrayCameraWidget(QWidget):
     Notes
     =====
 
-    This widget processes the frame with single thread, therefore long operation
-    block the GUI. Refer to the package examples for building multithread stream.
+    This widget processes the frames with single thread, therefore long
+    processing blocks the GUI. Refer to the package examples for building
+    multithread pipeline.
 
     """
 
@@ -137,5 +146,12 @@ class NDArrayCameraWidget(QWidget):
 
     @Slot(np.ndarray)
     def setArray(self, array: npt.NDArray[np.uint8]):
-        """Process the array and set to :meth:`videoLabel`."""
-        self.videoLabel().setArray(array)
+        """
+        Process the array with :meth:`processArray` and set to :meth:`videoLabel`.
+        """
+        ret = self.processArray(array)
+        self.videoLabel().setArray(ret)
+
+    def processArray(self, array: npt.NDArray[np.uint8]) -> npt.NDArray[np.uint8]:
+        """Perform array processing. Redefine this method if needed."""
+        return array
