@@ -12,7 +12,8 @@
 
 import os
 import sys
-sys.path.insert(0, os.path.abspath('../../cv2PySide6'))
+
+sys.path.insert(0, os.path.abspath("../../cv2PySide6"))
 
 autodoc_mock_imports = ["PySide6"]
 
