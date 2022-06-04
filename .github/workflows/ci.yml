@@ -59,8 +59,14 @@ jobs:
     strategy:
       matrix:
         os : [ubuntu-latest]
-        # cannot run ci in python 3.6, 3.7 (https://bugreports.qt.io/browse/PYSIDE-1797)
-        python: ["3.8", "3.9", "3.10"]
+        python: ["3.6", "3.7", "3.8", "3.9", "3.10"]
+        pyside6: ["6.2", "6.3"]
+        # cannot run some versions ci (https://bugreports.qt.io/browse/PYSIDE-1797)
+        exclude:
+          - python: "3.6"
+            pyside6: "6.3"
+          - python: "3.7"
+            pyside6: "6.3"
 
     env:
       DISPLAY: ':99.0'
@@ -92,6 +98,10 @@ jobs:
           sudo apt install libgstreamer1.0-dev libgstreamer-plugins-base1.0-dev
           gstreamer1.0-plugins-base gstreamer1.0-plugins-good
           gstreamer1.0-plugins-bad gstreamer1.0-plugins-ugly gstreamer1.0-libav
+
+      - name: install different versions of PySide6
+        run: |
+          pip install PySide6==${{ matrix.pyside6 }}
 
       - name: install package
         run: |
