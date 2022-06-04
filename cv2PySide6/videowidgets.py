@@ -8,7 +8,6 @@ video pipelines.
 """
 
 import numpy as np
-import numpy.typing as npt
 from PySide6.QtCore import Qt, Slot
 from PySide6.QtWidgets import QWidget, QVBoxLayout
 from .labels import NDArrayLabel
@@ -81,14 +80,14 @@ class NDArrayVideoPlayerWidget(QWidget):
         return self._mediaController
 
     @Slot(np.ndarray)
-    def setArray(self, array: npt.NDArray[np.uint8]):
+    def setArray(self, array: np.ndarray):
         """
         Process the array with :meth:`processArray` and set to :meth:`videoLabel`.
         """
         ret = self.processArray(array)
         self.videoLabel().setArray(ret)
 
-    def processArray(self, array: npt.NDArray[np.uint8]) -> npt.NDArray[np.uint8]:
+    def processArray(self, array: np.ndarray) -> np.ndarray:
         """Perform array processing. Redefine this method if needed."""
         return array
 
@@ -145,13 +144,13 @@ class NDArrayCameraWidget(QWidget):
         return self._videoLabel
 
     @Slot(np.ndarray)
-    def setArray(self, array: npt.NDArray[np.uint8]):
+    def setArray(self, array: np.ndarray):
         """
         Process the array with :meth:`processArray` and set to :meth:`videoLabel`.
         """
         ret = self.processArray(array)
         self.videoLabel().setArray(ret)
 
-    def processArray(self, array: npt.NDArray[np.uint8]) -> npt.NDArray[np.uint8]:
+    def processArray(self, array: np.ndarray) -> np.ndarray:
         """Perform array processing. Redefine this method if needed."""
         return array
