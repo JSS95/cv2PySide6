@@ -11,3 +11,5 @@ This manual describes the modules and objects in :mod:`cv2PySide6`.
 
    labels
    videostream
+   videoutil
+   videowidgets

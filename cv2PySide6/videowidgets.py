@@ -1,6 +1,12 @@
 """
-Widgets to play video stream.
+Video widgets
+=============
+
+:mod:`cv2PySide6.videowidgets` provides convenience widgets with pre-built
+video pipelines.
+
 """
+
 from PySide6.QtCore import Qt
 from PySide6.QtWidgets import QWidget, QVBoxLayout
 from .labels import NDArrayLabel
