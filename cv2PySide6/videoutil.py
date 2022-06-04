@@ -1,6 +1,11 @@
 """
-Utilities to run video.
+Video utilities
+===============
+
+:mod:`cv2PySide6.videoutil` provides utility classes for running the video.
+
 """
+
 from PySide6.QtCore import Qt, QPointF, Slot
 from PySide6.QtGui import QMouseEvent
 from PySide6.QtMultimedia import QMediaPlayer
@@ -66,7 +71,8 @@ class MediaController(QWidget):
 
     This controller can change the playback state and media position by
     :meth:`playButton`, :meth:`stopButton`, and :meth:`slider`.
-    Pass :class:`QMediaPlayer` to :meth:`setPlayer` to control it by this widget.
+
+    :meth:`setPlayer` sets the player to be controlled by this widget.
 
     """
 

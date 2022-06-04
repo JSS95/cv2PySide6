@@ -1,5 +1,7 @@
 """
-General utility functions.
+General utilities
+=================
+
 """
 
 import cv2PySide6
@@ -12,9 +14,8 @@ __all__ = [
 
 
 def get_data_path(*paths: str) -> str:
-    r"""
-    Get the absolute path to the directory where the sample data are
-    stored.
+    """
+    Get the absolute path to the directory where the sample data are stored.
 
     Parameters
     ==========
