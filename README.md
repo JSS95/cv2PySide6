@@ -53,3 +53,18 @@ To build multithread pipeline, refer to the examples and build the pipeline your
 # Examples
 
 Use cases with multithreading are provided in [examples](https://github.com/JSS95/cv2PySide6/tree/master/cv2PySide6/examples) directory.
+
+# Documentation
+
+Documentation can be found on Read the Docs:
+
+> https://cv2pyside6.readthedocs.io/
+
+If you want to build the document yourself, clone the source code and install with `[doc]` option.
+Go to `doc` directory and build.
+
+```
+$ pip install cv2PySide6[doc]
+$ cd doc
+$ make html
+```
