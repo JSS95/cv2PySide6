@@ -25,7 +25,7 @@ $ pip install cv2PySide6
 User can construct a pipeline which converts `QVideoFrame` to `ndarray`, performs any desired processing and displays to the widget.
 
 <div align="center">
-  <img src="https://github.com/JSS95/cv2PySide6/raw/master/image/pipeline.png"/><br>
+  <img src="https://github.com/JSS95/cv2PySide6/raw/master/doc/source/_images/pipeline.png"/><br>
     Video display pipeline
 </div>
 

@@ -14,6 +14,7 @@ This is the central page for all documents.
    :maxdepth: 2
    :caption: Contents:
 
+   User guide <user-guide/index>
    API reference <reference/index>
    Examples <examples/index>
 
