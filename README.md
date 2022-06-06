@@ -1,5 +1,7 @@
 Python package which combines [OpenCV-Python](https://pypi.org/project/opencv-python/) and [PySide6](https://pypi.org/project/PySide6/).
 
+> :warning: This package is migrated to [AraViQ6](https://pypi.org/project/araviq6/).
+
 # Introduction
 
 `PySide6` provides powerful tools to acquire video stream from file or device, and to display it on GUI.
